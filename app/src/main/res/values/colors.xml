@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>\\選択タブのテキストカラー
+    <color name="tabTextColor">#ff6347</color>\\未選択タブのテキストカラー
+    <color name="roundTextOrangeColor">#ff6347</color>\\角丸テキストボックス(オレンジ)の塗りつぶし色
+    <color name="roundTextBlueColor">#4169e1</color>\\角丸テキストボックス(青)の塗りつぶし色
+    <color name="roundTextGrayColor">#696969</color>\\角丸テキストボックス(グレー)の塗りつぶし色
+    <color name="toolTipBgColor">#999999</color>\\ツールチップの背景色
+    <color name="toolTipTextColor">#ffffff</color>\\ツールチップのテキスト色
+</resources>

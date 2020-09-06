@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="tabTopMargin">5dp</dimen>//タブ最上部の表示マージン
+    <dimen name="tabBottomMargin">10dp</dimen>//タブ最下部の表示マージン
+    <dimen name="pieChartSize">90dp</dimen>//温湿度表示用の円グラフサイズ
+    <dimen name="pieTableMargin">10dp</dimen>//温湿度表示用円グラフとセンサ一覧テーブルの間のマージン
+    <dimen name="timeZoneTextSize">8sp</dimen>//タイムゾーン表示の文字サイズ
+    <dimen name="roundTextRadius">5dp</dimen>//センサ一覧の角丸テキストのアール
+    <dimen name="pieTempSeriesMargin">5dp</dimen>//場所ごと温度表示用円グラフと温度推移グラフの間のマージン
+    <dimen name="tempSeriesStatsMargin">8dp</dimen>//温度推移グラフと最高最低気温グラフの間のマージン
+    <dimen name="statsCandleStickChartSize">180dp</dimen>//最高最低気温(湿度)グラフのサイズ
+    <dimen name="pieHumidSeriesMargin">5dp</dimen>//場所ごと温度表示用円グラフと温度推移グラフの間のマージン
+    <dimen name="humidSeriesStatsMargin">8dp</dimen>//温度推移グラフと最高最低気温グラフの間のマージン
+</resources>

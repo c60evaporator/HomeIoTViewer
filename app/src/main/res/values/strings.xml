@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">HomeIoTViewer</string>//アプリのタイトル
+    <string name="username">Email</string>//Eメールアドレス入力ボックスのヒント文字
+    <string name="password">Password</string>//パスワード入力ボックスのヒント文字
+    <string name="create_account">Create account</string>//アカウント作成ボタンの文字
+    <string name="login">Login</string>//ログインボタンの文字
+    <string name="logout">Log Out</string>//ログアウトボタンの文字
+    <string name="refresh">Refresh</string>//更新ボタンの文字
+    <string name="tab_name_1">Summary</string>//1個目のタブの文字
+    <string name="tab_name_2">Temperature</string>//2個目のタブの文字
+    <string name="tab_name_3">Humidity</string>//3個目のタブの文字
+</resources>

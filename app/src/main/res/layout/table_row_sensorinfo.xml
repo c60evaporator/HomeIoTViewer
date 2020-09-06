@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#222222" >
+
+    <TextView
+        android:id="@+id/rowtextSensorName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#fafafa"
+        android:fontFamily="sans-serif-condensed"
+        android:textColor="#222222"
+        android:textSize="12sp" />
+    <TextView
+        android:id="@+id/rowtextPlace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:background="#fafafa"
+        android:gravity="center"
+        android:textColor="#222222"
+        android:textSize="12sp" />
+    <TextView
+        android:id="@+id/rowtextLastDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:background="#fafafa"
+        android:gravity="center"
+        android:textColor="#222222"
+        android:textSize="12sp" />
+    <TextView
+        android:id="@+id/rowtextTemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:background="#fafafa"
+        android:gravity="center"
+        android:textColor="#222222"
+        android:textSize="12sp"/>
+    <TextView
+        android:id="@+id/rowtextHumidity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:background="#fafafa"
+        android:gravity="center"
+        android:textColor="#222222"
+        android:textSize="12sp" />
+</TableRow>
