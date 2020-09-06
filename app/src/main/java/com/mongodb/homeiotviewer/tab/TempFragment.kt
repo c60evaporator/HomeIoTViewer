@@ -193,27 +193,25 @@ class TempFragment(
         //線ごとのフォーマット
         val tempLineFormat: Map<String, OneLineFormat> = mapOf(
             "indoor" to OneLineFormat(
-                Color.rgb(243, 201, 14), Pair(2f, null), Triple(
-                    false,
-                    null,
-                    null
-                )
+                Color.rgb(243, 201, 14),
+                Pair(2f, null),
+                Triple(false, null, null)
             ),
             "kitchen" to OneLineFormat(
-                Color.rgb(128, 255, 0), Pair(2f, null), Triple(
-                    false,
-                    null,
-                    null
-                )
+                Color.rgb(128, 255, 0),
+                Pair(2f, null),
+                Triple(false, null, null)
             ),
             "outdoor_shade" to OneLineFormat(
-                Color.rgb(185, 122, 87), Pair(2f, null), Triple(
-                    false,
-                    null,
-                    null
-                )
+                Color.rgb(185, 122, 87),
+                Pair(2f, null),
+                Triple(false, null, null)
             ),
-            "outdoor_sunny" to OneLineFormat(Color.RED, Pair(2f, null), Triple(false, null, null))
+            "outdoor_sunny" to OneLineFormat(
+                Color.RED,
+                Pair(2f, null),
+                Triple(false, null, null)
+            )
         )
         setupLineChart(allLinesData, view.lineChartTempTimeSeries, tempSeriesFormat, tempLineFormat, context)
     }
