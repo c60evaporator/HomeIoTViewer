@@ -1,4 +1,4 @@
-package com.mongodb.homeiotviewer.chart
+package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
 import android.graphics.Color
@@ -9,16 +9,16 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
-import com.mongodb.homeiotviewer.R
+import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * 時系列グラフ用Entryのリスト作成
+ * グラフ用Entryのリスト作成
  * @param[x]:X軸のデータ(Date型)
  * @param[y]:Y軸のデータ(Float型)
  */
-fun makeDateLineChartData(x: List<Date>, y: List<Float>): MutableList<Entry>{
+fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean): MutableList<Entry>{
     //出力用のMutableList<Entry>, ArrayList<String>
     var entryList = mutableListOf<Entry>()
     //xとyのサイズが異なるとき、エラーを出して終了
@@ -27,10 +27,28 @@ fun makeDateLineChartData(x: List<Date>, y: List<Float>): MutableList<Entry>{
         throw IllegalArgumentException("size of x and y are not equal")
     }
     //軸のデータを全てループ
-    for(i in x.indices){
-        entryList.add(
-            Entry(i.toFloat(), y[i], x[i])
-        )
+    //全ラベル表示のとき
+    if(!timeAccuracy){
+        for(i in x.indices){
+            entryList.add(
+                Entry(i.toFloat(), y[i], x[i])
+            )
+        }
+    }
+    //最初と最後のラベルのみ表示するとき（精度重視）
+    else{
+        //日付をシリアル値に変換して規格化
+        val xSerial = x.map{it.time.toFloat()}//シリアル値変換
+        val maxSerial = xSerial.max()!!//最大値
+        val minSerial = xSerial.min()!!//最小値
+        val size = x.size//データの要素数
+        val xFloat = xSerial.map { (it - minSerial) / (maxSerial - minSerial) * (size - 1) }//最小値が0、最大値がsize - 1となるよう規格化
+        //entryListに入力
+        for(i in x.indices){
+            entryList.add(
+                Entry(xFloat[i], y[i], x[i])
+            )
+        }
     }
     return entryList
 }
@@ -56,18 +74,8 @@ fun setupLineChart(
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
-    // 右Y軸は表示しない
-    lineChart.axisRight.isEnabled = false
-    //グラフ全体フォーマットの適用
-    formatAllLines(lineChart, allLinesFormat, context)
 
-    //日付軸の設定
-    if(allLinesFormat.xAxisDateFormat != null) {
-        //X軸ラベルのリスト取得
-        val xLabel = allLinesData[allLinesData.keys.first()]?.map { allLinesFormat.xAxisDateFormat?.format(it.data) }
-        //上記リストをX軸ラベルに設定
-        lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
-    }
+
 
     //LineDataSetのリストを作成
     val lineDataSets = mutableListOf<ILineDataSet>()
@@ -83,6 +91,32 @@ fun setupLineChart(
     val lineData = LineData(lineDataSets)
     //lineChartにlineDataをセット
     lineChart.data = lineData
+    //グラフ全体フォーマットの適用
+    formatAllLines(lineChart, allLinesFormat, context)
+    //日付軸の設定
+    if(allLinesFormat.xAxisDateFormat != null) {
+        //全ラベル表示のとき
+        if(!allLinesFormat.timeAccuracy){
+            //X軸ラベルのリスト取得
+            val xLabel = allLinesData[allLinesData.keys.first()]?.map { allLinesFormat.xAxisDateFormat?.format(it.data) }
+            //上記リストをX軸ラベルに設定
+            lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
+        }
+        //精度重視のとき
+        else{
+            //X軸ラベルのリスト取得
+            val size = allLinesData[allLinesData.keys.first()]?.size!!
+            val xLabel = allLinesData[allLinesData.keys.first()]?.mapIndexed { index, entry ->
+                when(index){
+                    0 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
+                    size - 1 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
+                    else -> ""
+                }
+            }
+            //上記リストをX軸ラベルに設定
+            lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
+        }
+    }
     //linechart更新
     lineChart.notifyDataSetChanged()
     lineChart.invalidate()
@@ -129,6 +163,8 @@ fun formatAllLines(lineChart: LineChart, allLinesFormat: AllLinesFormat, context
     if(allLinesFormat.yAxisLeftMinMax.second != null){
         lineChart.axisLeft.axisMaximum = allLinesFormat.yAxisLeftMinMax.second!!
     }
+    // 右Y軸は表示しない
+    lineChart.axisRight.isEnabled = false
     //タッチ動作
     lineChart.setTouchEnabled(allLinesFormat.touch)
     //ズーム設定
@@ -202,6 +238,7 @@ fun formatOneLine(lineDataSet: LineDataSet, oneLineFormat: OneLineFormat){
  * @param[zoom]:ズーム設定(1項目:ズームの方向(null, x, y, xy), 2項目:ピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定))
  * @param[toolTipFormat]:ツールチップ設定(1項目:表示内容(null, x, y, xy), 2項目:日付のフォーマット(日付軸のときのみ、それ以外ならnull))
  * @param[toolTipUnit]:ツールチップの表示単位(1項目:x軸, 2項目:y軸)
+ * @param[timeAccuracy]:時系列グラフのX軸を正確にプロットするか(trueなら正確に表示するがラベルは最大最小値のみ、falseなら正確性落ちるが全ラベル表示)
  */
 class AllLinesFormat(){
     //プロパティ
@@ -216,6 +253,7 @@ class AllLinesFormat(){
     var zoom: Pair<String?, Boolean>//ズーム設定(X方向＋ピンチ動作をXY同時にするか)
     var toolTipFormat: Pair<String?, SimpleDateFormat?>//ツールチップ表示
     var toolTipUnit: Pair<String, String>//ツールチップの表示単位
+    var timeAccuracy: Boolean//時系列グラフのX軸を正確にプロットするか
     //プライマリコンストラクタ（デフォルト状態）
     init{
         this.legendFormat = Pair(Color.BLACK, Legend.LegendForm.DEFAULT) //黒＋デフォルト
@@ -229,6 +267,7 @@ class AllLinesFormat(){
         this.zoom = Pair("xy", true)//どちらも許可
         this.toolTipFormat = Pair(null, null)//表示なし
         this.toolTipUnit = Pair("", "")//空文字
+        this.timeAccuracy = false//全ラベル表示(X軸の正確性は落ちる)
     }
     //セカンダリコンストラクタ（各フォーマットを指定）
     constructor(
@@ -242,7 +281,8 @@ class AllLinesFormat(){
         touch: Boolean,
         zoom: Pair<String?, Boolean>,
         toolTipFormat: Pair<String?, SimpleDateFormat?>,
-        toolTipUnit: Pair<String, String>
+        toolTipUnit: Pair<String, String>,
+        timeAccuracy: Boolean
     ): this(){
         this.legendFormat = legendFormat
         this.descFormat = descFormat
@@ -255,6 +295,7 @@ class AllLinesFormat(){
         this.zoom = zoom
         this.toolTipFormat = toolTipFormat
         this.toolTipUnit = toolTipUnit
+        this.timeAccuracy = timeAccuracy
     }
 }
 

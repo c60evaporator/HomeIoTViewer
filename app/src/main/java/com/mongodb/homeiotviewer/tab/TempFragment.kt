@@ -165,17 +165,6 @@ class TempFragment(
         tempSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
         view: View
     ) {
-        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
-        val places = tempSeriesData.keys//場所のリスト
-        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
-        for(pl in places){
-            //要素数が0なら処理を終了
-            if(tempSeriesData[pl]?.size == 0) return
-            //Entryにデータ入力
-            val x = tempSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
-            val y = tempSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
-            allLinesData[pl] = makeDateLineChartData(x, y)//日時と温度をEntryのリストに変換
-        }
         //グラフ全体のフォーマット
         val tempSeriesFormat = AllLinesFormat(
             Pair(Color.WHITE, Legend.LegendForm.DEFAULT),//凡例 (文字色＋形状)
@@ -188,7 +177,8 @@ class TempFragment(
             true,//タッチ有効
             Pair("xy", false),//ズーム設定(有無＋ピンチ動作をXY方向に限定するか)
             Pair("xy", SimpleDateFormat("M/d H:mm")),//ツールチップ設定(表示軸方向＋日付軸フォーマット)
-            Pair("","°C")//ツールチップの表示単位(X軸＋Y軸)
+            Pair("","°C"),//ツールチップの表示単位(X軸＋Y軸)
+            true//時系列グラフのX軸を正確にプロットするか
         )
         //線ごとのフォーマット
         val tempLineFormat: Map<String, OneLineFormat> = mapOf(
@@ -213,6 +203,17 @@ class TempFragment(
                 Triple(false, null, null)
             )
         )
+        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
+        val places = tempSeriesData.keys//場所のリスト
+        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
+        for(pl in places){
+            //要素数が0なら処理を終了
+            if(tempSeriesData[pl]?.size == 0) return
+            //Entryにデータ入力
+            val x = tempSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
+            val y = tempSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
+            allLinesData[pl] = makeDateLineChartData(x, y, tempSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
+        }
         setupLineChart(allLinesData, view.lineChartTempTimeSeries, tempSeriesFormat, tempLineFormat, context)
     }
 

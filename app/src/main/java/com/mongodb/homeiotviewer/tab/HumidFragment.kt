@@ -152,17 +152,6 @@ class HumidFragment(
         humidSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
         view: View
     ) {
-        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
-        val places = humidSeriesData.keys//場所のリスト
-        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
-        for(pl in places){
-            //要素数が0なら処理を終了
-            if(humidSeriesData[pl]?.size == 0) return
-            //Entryにデータ入力
-            val x = humidSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
-            val y = humidSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
-            allLinesData[pl] = makeDateLineChartData(x, y)//日時と温度をEntryのリストに変換
-        }
         //グラフ全体のフォーマット
         val humidSeriesFormat = AllLinesFormat(
             Pair(Color.WHITE, Legend.LegendForm.DEFAULT),//凡例 (文字色＋形状)
@@ -175,7 +164,8 @@ class HumidFragment(
             true,//タッチ有効
             Pair("xy", false),//ズーム設定(有無＋ピンチ動作をXY方向に限定するか)
             Pair("xy", SimpleDateFormat("M/d H:mm")),//ツールチップ設定(表示軸方向＋日付軸フォーマット)
-            Pair("","%")//ツールチップの表示単位(X軸＋Y軸)
+            Pair("","%"),//ツールチップの表示単位(X軸＋Y軸)
+            false//時系列グラフのX軸を正確にプロットするか
         )
         //線ごとのフォーマット
         val humidLineFormat: Map<String, OneLineFormat> = mapOf(
@@ -200,6 +190,18 @@ class HumidFragment(
                 Triple(false, null, null)
             )
         )
+        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
+        val places = humidSeriesData.keys//場所のリスト
+        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
+        for(pl in places){
+            //要素数が0なら処理を終了
+            if(humidSeriesData[pl]?.size == 0) return
+            //Entryにデータ入力
+            val x = humidSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
+            val y = humidSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
+            allLinesData[pl] = makeDateLineChartData(x, y, humidSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
+        }
+
         setupLineChart(allLinesData, view.lineChartHumidTimeSeries, humidSeriesFormat, humidLineFormat, context)
     }
 

@@ -1,4 +1,4 @@
-package com.mongodb.homeiotviewer.chart
+package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.graphics.Color
 import com.github.mikephil.charting.charts.PieChart

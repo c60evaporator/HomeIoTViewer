@@ -1,4 +1,4 @@
-package com.mongodb.homeiotviewer.chart
+package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
 import android.graphics.Color
@@ -9,7 +9,7 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.mongodb.homeiotviewer.R
+import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
 import java.text.SimpleDateFormat
 import java.util.*
 

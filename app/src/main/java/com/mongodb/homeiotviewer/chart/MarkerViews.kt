@@ -1,13 +1,12 @@
-package com.mongodb.homeiotviewer.chart
+package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
 import android.widget.TextView
 import com.github.mikephil.charting.components.MarkerView
-import com.github.mikephil.charting.data.CandleEntry
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
-import com.mongodb.homeiotviewer.R
+import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
 import java.text.SimpleDateFormat
 
 /**
