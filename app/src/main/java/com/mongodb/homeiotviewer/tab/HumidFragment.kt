@@ -54,30 +54,6 @@ class HumidFragment(
         val shadeHumid = shadeData.mapNotNull { it.humidity }.average()
         val sunnyHumid = sunnyData.mapNotNull { it.humidity }.average()
 
-        //屋内温度を円グラフ用データに整形
-        val (dimensionsIndoorHumid, valuesIndoorHumid) = makePieDashboardData(
-            indoorHumid.toFloat(),
-            0f,
-            100f
-        )
-        //屋外温度を円グラフ用に整形
-        val (dimensionsKitchenHumid, valuesKitchenHumid) = makePieDashboardData(
-            kitchenHumid.toFloat(),
-            0f,
-            100f
-        )
-        //屋内湿度を円グラフ用に整形
-        val (dimensionsShadeHumid, valuesShadeHumid) = makePieDashboardData(
-            shadeHumid.toFloat(),
-            0f,
-            100f
-        )
-        //屋外湿度を円グラフ用に整形
-        val (dimensionsSunnyHumid, valuesSunnyHumid) = makePieDashboardData(
-            sunnyHumid.toFloat(),
-            0f,
-            100f
-        )
         //描画フォーマット
         val indoorHumidFormat = PieFormat(
             Pair(null, Color.WHITE),//凡例 (形状＋文字色)
@@ -115,31 +91,58 @@ class HumidFragment(
             listOf(Color.RED, Color.GRAY),
             "false"
         )
-        //円グラフ描画
+
+        //屋内湿度を円グラフ用データに整形
+        val (dimensionsIndoorHumid, valuesIndoorHumid) = makePieDashboardData(
+            indoorHumid.toFloat(),
+            0f,
+            100f
+        )
+        //キッチン湿度を円グラフ用に整形
+        val (dimensionsKitchenHumid, valuesKitchenHumid) = makePieDashboardData(
+            kitchenHumid.toFloat(),
+            0f,
+            100f
+        )
+        //日陰湿度を円グラフ用に整形
+        val (dimensionsShadeHumid, valuesShadeHumid) = makePieDashboardData(
+            shadeHumid.toFloat(),
+            0f,
+            100f
+        )
+        //日なた湿度を円グラフ用に整形
+        val (dimensionsSunnyHumid, valuesSunnyHumid) = makePieDashboardData(
+            sunnyHumid.toFloat(),
+            0f,
+            100f
+        )
+
+        //①場所ごとにEntryのリストを作成
+        val indoorEntries = makePieChartEntries(dimensionsIndoorHumid, valuesIndoorHumid)
+        val kitchenEntries = makePieChartEntries(dimensionsKitchenHumid, valuesKitchenHumid)
+        val shadeEntries = makePieChartEntries(dimensionsShadeHumid, valuesShadeHumid)
+        val sunnyEntries = makePieChartEntries(dimensionsSunnyHumid, valuesSunnyHumid)
+        //②～⑦円グラフ描画
         setupPieChart(
-            dimensionsIndoorHumid,
-            valuesIndoorHumid,
+            indoorEntries,
             view.piechartHumidIndoorHumid,
             "室内温度",
             indoorHumidFormat
         )
         setupPieChart(
-            dimensionsKitchenHumid,
-            valuesKitchenHumid,
+            kitchenEntries,
             view.piechartHumidKitchen,
             "室外温度",
             kitchenHumidFormat
         )
         setupPieChart(
-            dimensionsShadeHumid,
-            valuesShadeHumid,
+            shadeEntries,
             view.piechartHumidOutdoorShade,
             "室内湿度",
             shadeHumidFormat
         )
         setupPieChart(
-            dimensionsSunnyHumid,
-            valuesSunnyHumid,
+            sunnyEntries,
             view.piechartHumidOutdoorSunny,
             "室外湿度",
             sunnyHumidFormat
@@ -190,19 +193,20 @@ class HumidFragment(
                 Triple(false, null, null)
             )
         )
-        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
+        //①場所ごとに必要期間のデータ抜き出してEntryのリストに入力
         val places = humidSeriesData.keys//場所のリスト
-        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
+        val allLinesEntries: MutableMap<String, MutableList<Entry>> = mutableMapOf()
         for(pl in places){
             //要素数が0なら処理を終了
             if(humidSeriesData[pl]?.size == 0) return
             //Entryにデータ入力
             val x = humidSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
             val y = humidSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
-            allLinesData[pl] = makeDateLineChartData(x, y, humidSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
+            allLinesEntries[pl] = makeDateLineChartData(x, y, humidSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
         }
 
-        setupLineChart(allLinesData, view.lineChartHumidTimeSeries, humidSeriesFormat, humidLineFormat, context)
+        //②～⑦グラフの作成
+        setupLineChart(allLinesEntries, view.lineChartHumidTimeSeries, humidSeriesFormat, humidLineFormat, context)
     }
 
     //温度推移データの描画
@@ -213,13 +217,6 @@ class HumidFragment(
     ){
         //要素数が0なら終了
         if(humidSeriesData["max"]?.size == 0) return
-        //必要データをEntryのリストに入力
-        val x = humidSeriesData["max"]?.map{it.first}!!
-        val yHigh = humidSeriesData["max"]?.map{it.second.toFloat()}!!
-        val yLow = humidSeriesData["min"]?.map{it.second.toFloat()}!!
-        val yMidHigh = humidSeriesData["avg"]?.map{it.second.toFloat()+0.2f}!!
-        val yMidLow = humidSeriesData["avg"]?.map{it.second.toFloat()-0.2f}!!
-        val candleData = makeDateLineChartData(x, yHigh, yLow, yMidHigh, yMidLow)
 
         //グラフ全体のフォーマット
         val candleFormat = CandleFormat(
@@ -241,6 +238,15 @@ class HumidFragment(
             "%.0f"//値表示の文字書式
         )
 
-        setupCandleStickChart(candleData, view.candleStickChartHumidStats, candleFormat, context)
+        //①必要データをEntryのリストに入力
+        val x = humidSeriesData["max"]?.map{it.first}!!
+        val yHigh = humidSeriesData["max"]?.map{it.second.toFloat()}!!
+        val yLow = humidSeriesData["min"]?.map{it.second.toFloat()}!!
+        val yMidHigh = humidSeriesData["avg"]?.map{it.second.toFloat()+0.2f}!!
+        val yMidLow = humidSeriesData["avg"]?.map{it.second.toFloat()-0.2f}!!
+        val candleEntries = makeDateCandleChartData(x, yHigh, yLow, yMidHigh, yMidLow)
+
+        //②～⑦グラフの作成
+        setupCandleStickChart(candleEntries, view.candleStickChartHumidStats, candleFormat, context)
     }
 }

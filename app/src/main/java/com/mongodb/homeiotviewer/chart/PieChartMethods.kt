@@ -3,6 +3,7 @@ package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変
 import android.graphics.Color
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
@@ -22,32 +23,42 @@ fun makePieDashboardData(displayValue: Float, tempLowerThresh: Float, tempUpperT
 }
 
 /**
- * 円グラフ描画
- * @param[dimensions]:円グラフの色分けカテゴリ
- * @param[values]:円グラフのカテゴリごとのサイズ
- * @param[pieChart]:描画対象のPieChart部品
- * @param[label]:グラフのタイトルラベル
- * @param[pieFormat]:円グラフのフォーマットを指定(独自クラスPieFormatで記載)
+ * 円グラフ用Entryのリスト作成
+ * @param[dimensions]:分割円の名称(String型)
+ * @param[values]:分割円の大きさ(Float型)
  */
-fun setupPieChart(dimensions: List<String>, values: List<Float>, pieChart: PieChart, label: String, pieFormat: PieFormat) {
+fun makePieChartEntries(dimensions: List<String>, values: List<Float>): MutableList<PieEntry> {
+    //出力用のMutableList<Entry>
+    var entryList = mutableListOf<PieEntry>()
+    //dimensionsとvaluesのサイズが異なるとき、エラーを出して終了
     if(dimensions.size != values.size)
     {
         throw IllegalArgumentException("size of labels and values are not equal")
     }
-    //PieEntryのリストを作成する:
-    val pieEntries: ArrayList<PieEntry> = arrayListOf()
+    //データを全てループしてEntryに格納
     for (i in values.indices) {
-        pieEntries.add( PieEntry(values[i], dimensions[i]) )
+        entryList.add( PieEntry(values[i], dimensions[i]) )
     }
-    //PieEntryをPieDataSetにセット
+    return entryList
+}
+
+/**
+ * 円グラフ描画
+ * @param[pieChartData]:円グラフのデータ本体
+ * @param[pieChart]:描画対象のPieChart部品
+ * @param[label]:グラフのタイトルラベル
+ * @param[pieFormat]:円グラフのフォーマットを指定(独自クラスPieFormatで記載)
+ */
+fun setupPieChart(pieEntries: MutableList<PieEntry>, pieChart: PieChart, label: String, pieFormat: PieFormat) {
+    //②PieDataSetにデータ格納
     val pieDataSet = PieDataSet(pieEntries, label)
-    //円グラフ描画フォーマットの適用
-    formatPie(pieChart, pieDataSet, pieFormat)
-    //PieDataにPieDataSetをセット
+    //④PieDataにPieDataSetを格納
     val pieData = PieData(pieDataSet)
-    //piechartにPieDataをセット
+    //⑤piechartにPieDataをセット
     pieChart.data = pieData
-    //piechart更新
+    //③⑥円グラフ描画フォーマットの適用
+    formatPie(pieChart, pieDataSet, pieFormat)
+    //⑦piechart更新
     pieChart.invalidate()
 }
 

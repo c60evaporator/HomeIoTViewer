@@ -14,14 +14,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Candleグラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(String型 → Date型でないので注意)
+ * ローソク足グラフ用Entryのリスト作成
+ * @param[x]:X軸のデータ(Float型)
  * @param[yHigh]:Y軸最大値(Float型)
  * @param[yLow]:Y軸最小値(Float型)
  * @param[yOpen]:開始時Y軸のデータ(Float型、箱ひげとして使用するときは第三四分位点)
  * @param[yClose]:終了時Y軸のデータ(Float型、箱ひげとして使用するときは第一四分位点)
  */
-fun makeDateLineChartData(x: List<Date>, yHigh: List<Float>, yLow: List<Float>, yOpen: List<Float>, yClose: List<Float>): MutableList<CandleEntry>{
+fun makeCandleChartData(x: List<Float>, yHigh: List<Float>, yLow: List<Float>, yOpen: List<Float>, yClose: List<Float>): MutableList<CandleEntry>{
     //出力用のMutableList<Entry>, ArrayList<String>
     var entryList = mutableListOf<CandleEntry>()
     //xとyのサイズが異なるとき、エラーを出して終了
@@ -29,7 +29,36 @@ fun makeDateLineChartData(x: List<Date>, yHigh: List<Float>, yLow: List<Float>, 
     {
         throw IllegalArgumentException("size of x and y are not equal")
     }
-    //軸のデータを全てループ
+    //軸のデータを全てループしてEntryに格納
+    for(i in x.indices){
+        entryList.add(
+            CandleEntry(x[i],
+                yHigh[i],
+                yLow[i],
+                yOpen[i],
+                yClose[i])
+        )
+    }
+    return entryList
+}
+
+/**
+ * 時系列ローソク足グラフ用Entryのリスト作成
+ * @param[x]:X軸のデータ(Date型)
+ * @param[yHigh]:Y軸最大値(Float型)
+ * @param[yLow]:Y軸最小値(Float型)
+ * @param[yOpen]:開始時Y軸のデータ(Float型、箱ひげとして使用するときは第三四分位点)
+ * @param[yClose]:終了時Y軸のデータ(Float型、箱ひげとして使用するときは第一四分位点)
+ */
+fun makeDateCandleChartData(x: List<Date>, yHigh: List<Float>, yLow: List<Float>, yOpen: List<Float>, yClose: List<Float>): MutableList<CandleEntry>{
+    //出力用のMutableList<Entry>, ArrayList<String>
+    var entryList = mutableListOf<CandleEntry>()
+    //xとyのサイズが異なるとき、エラーを出して終了
+    if(x.size != yHigh.size || x.size != yLow.size || x.size != yOpen.size || x.size != yClose.size)
+    {
+        throw IllegalArgumentException("size of x and y are not equal")
+    }
+    //軸のデータを全てループしてEntryに格納
     for(i in x.indices){
         entryList.add(
             CandleEntry(i.toFloat(),
@@ -45,44 +74,39 @@ fun makeDateLineChartData(x: List<Date>, yHigh: List<Float>, yLow: List<Float>, 
 
 /**
  * CandleStickグラフ描画
- * @param[candleData]:CandleStickグラフのデータ本体
+ * @param[candleEntries]:ローソク足グラフのデータ本体
  * @param[candleStickChart]:描画対象のCandleStickChartビュー
  * @param[candleFormat]:グラフのフォーマットを指定
  * @param[context]:呼び出し元のActivityあるいはFragmentのContext
  */
 fun setupCandleStickChart(
-    candleData: MutableList<CandleEntry>,
+    candleEntries: MutableList<CandleEntry>,
     candleStickChart: CandleStickChart,
     candleFormat: CandleFormat,
     context: Context
 ) {
-    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、
+    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、例外を投げる
     if((candleFormat.xAxisDateFormat == null && candleFormat.toolTipFormat.second != null)
         || (candleFormat.xAxisDateFormat != null && candleFormat.toolTipFormat.second == null))
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
-
+    //③CandleDataSetを作成
+    val candleDataSet = CandleDataSet(candleEntries, "SampleChandleData")
+    //④CandleDataにCandDataSetを格納
+    val candleData = CandleData(candleDataSet)
+    //⑤CandleStickChartにCandleDataを格納
+    candleStickChart.data = candleData
+    //③⑥グラフ全体フォーマットおよび凡例フォーマットの適用
+    formatCandle(candleStickChart, candleDataSet, candleFormat, context)
     //日付軸の設定
     if(candleFormat.xAxisDateFormat != null) {
         //X軸ラベルのリスト取得
-        val xLabel = candleData.map { candleFormat.xAxisDateFormat?.format(it.data) }
+        val xLabel = candleEntries.map { candleFormat.xAxisDateFormat?.format(it.data) }
         //上記リストをX軸ラベルに設定
         candleStickChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
     }
-
-    //candleDataSetを作成
-    val candleDataSet = CandleDataSet(candleData, "SampleChandleData")
-
-    //グラフ全体フォーマットの適用
-    formatCandle(candleStickChart, candleDataSet, candleFormat, context)
-
-    //candleStickDataにcandleDataSetをセット
-    val candleStickData = CandleData(candleDataSet)
-    //candleStickChartにcandleStickDataをセット
-    candleStickChart.data = candleStickData
-    //linechart更新
-    candleStickChart.notifyDataSetChanged()
+    //⑦linechart更新
     candleStickChart.invalidate()
 }
 
@@ -194,8 +218,6 @@ fun formatCandle(candleStickChart: CandleStickChart, candleDataSet: CandleDataSe
                 }
             }
         }
-        //setDrawValues(true)
-        //valueTextColor = Color.rgb(220, 120, 80)
     }
 }
 

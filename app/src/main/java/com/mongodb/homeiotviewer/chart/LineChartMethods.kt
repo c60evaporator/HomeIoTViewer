@@ -14,19 +14,41 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * グラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(Date型)
+ * 折れ線グラフ用Entryのリスト作成
+ * @param[x]:X軸のデータ(Float型)
  * @param[y]:Y軸のデータ(Float型)
  */
-fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean): MutableList<Entry>{
-    //出力用のMutableList<Entry>, ArrayList<String>
+fun makeLineChartData(x: List<Float>, y: List<Float>): MutableList<Entry> {
+    //出力用のMutableList<Entry>
     var entryList = mutableListOf<Entry>()
     //xとyのサイズが異なるとき、エラーを出して終了
     if(x.size != y.size)
     {
         throw IllegalArgumentException("size of x and y are not equal")
     }
-    //軸のデータを全てループ
+    //軸のデータを全てループしてEntryに格納
+    for(i in x.indices){
+        entryList.add(
+            Entry(x[i], y[i])
+        )
+    }
+    return entryList
+}
+
+/**
+ * 時系列折れ線グラフ用Entryのリスト作成
+ * @param[x]:X軸のデータ(Date型)
+ * @param[y]:Y軸のデータ(Float型)
+ */
+fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean): MutableList<Entry>{
+    //出力用のMutableList<Entry>
+    var entryList = mutableListOf<Entry>()
+    //xとyのサイズが異なるとき、エラーを出して終了
+    if(x.size != y.size)
+    {
+        throw IllegalArgumentException("size of x and y are not equal")
+    }
+    //軸のデータを全てループしてEntryに格納
     //全ラベル表示のとき
     if(!timeAccuracy){
         for(i in x.indices){
@@ -55,58 +77,56 @@ fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean):
 
 /**
  * 折れ線グラフ描画
- * @param[allLinesData]:折れ線グラフのデータ本体 ({折れ線1名称:ListOf(折れ線1のEntry), 折れ線2名称:ListOf(折れ線2のEntry), ‥}の構造)
+ * @param[allLinesEntries]:折れ線グラフのデータ本体 ({折れ線1名称:ListOf(折れ線1のEntry), 折れ線2名称:ListOf(折れ線2のEntry), ‥}の構造)
  * @param[lineChart]:描画対象のLineChartビュー
  * @param[allLinesFormat]:グラフ全体のフォーマットを指定(独自クラスAllLinesFormatで記載)
  * @param[onelineFormat]:折れ線ごとのフォーマットを指定(placeをキーとして、独自クラスOneLineFormatのmapで記載)
  * @param[context]:呼び出し元のActivityあるいはFragmentのContext
  */
 fun setupLineChart(
-    allLinesData: MutableMap<String, MutableList<Entry>>,
+    allLinesEntries: MutableMap<String, MutableList<Entry>>,
     lineChart: LineChart,
     allLinesFormat: AllLinesFormat,
     oneLineFormat: Map<String, OneLineFormat>,
     context: Context
 ) {
-    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、
+    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、例外を投げる
     if((allLinesFormat.xAxisDateFormat == null && allLinesFormat.toolTipFormat.second != null)
         || (allLinesFormat.xAxisDateFormat != null && allLinesFormat.toolTipFormat.second == null))
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
 
-
-
-    //LineDataSetのリストを作成
+    //②LineDataSetのリストを作成
     val lineDataSets = mutableListOf<ILineDataSet>()
-    for((k, v) in allLinesData){
+    for((k, v) in allLinesEntries){
         var lineDataSet: ILineDataSet = LineDataSet(v, k).apply{
-            //線ごとフォーマット適用
+            //③線ごとフォーマット適用
             formatOneLine(this, oneLineFormat[k]!!)
         }
         lineDataSets.add(lineDataSet)
     }
 
-    //lineDataにlineDataSetsをセット
+    //④LineDataにLineDataSet格納
     val lineData = LineData(lineDataSets)
-    //lineChartにlineDataをセット
+    //⑤LineChartにLineDataを格納
     lineChart.data = lineData
-    //グラフ全体フォーマットの適用
+    //⑥グラフ全体フォーマットの適用
     formatAllLines(lineChart, allLinesFormat, context)
     //日付軸の設定
     if(allLinesFormat.xAxisDateFormat != null) {
         //全ラベル表示のとき
         if(!allLinesFormat.timeAccuracy){
             //X軸ラベルのリスト取得
-            val xLabel = allLinesData[allLinesData.keys.first()]?.map { allLinesFormat.xAxisDateFormat?.format(it.data) }
+            val xLabel = allLinesEntries[allLinesEntries.keys.first()]?.map { allLinesFormat.xAxisDateFormat?.format(it.data) }
             //上記リストをX軸ラベルに設定
             lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
         }
         //精度重視のとき
         else{
             //X軸ラベルのリスト取得
-            val size = allLinesData[allLinesData.keys.first()]?.size!!
-            val xLabel = allLinesData[allLinesData.keys.first()]?.mapIndexed { index, entry ->
+            val size = allLinesEntries[allLinesEntries.keys.first()]?.size!!
+            val xLabel = allLinesEntries[allLinesEntries.keys.first()]?.mapIndexed { index, entry ->
                 when(index){
                     0 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
                     size - 1 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
@@ -117,8 +137,7 @@ fun setupLineChart(
             lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
         }
     }
-    //linechart更新
-    lineChart.notifyDataSetChanged()
+    //⑦LineChart更新
     lineChart.invalidate()
 }
 

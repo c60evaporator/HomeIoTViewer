@@ -61,36 +61,11 @@ class TempFragment(
         val kitchenData = sensorData.filter { it.place == "kitchen" }
         val shadeData = sensorData.filter { it.place == "outdoor_shade" }
         val sunnyData = sensorData.filter { it.place == "outdoor_sunny" }
-        //屋内外の平均温湿度を計算
+        //場所ごとの平均気温を計算
         val indoorTemp = indoorData.mapNotNull { it.temperature }.average()
         val kitchenTemp = kitchenData.mapNotNull { it.temperature }.average()
         val shadeTemp = shadeData.mapNotNull { it.temperature }.average()
         val sunnyTemp = sunnyData.mapNotNull { it.temperature }.average()
-
-        //屋内温度を円グラフ用データに整形
-        val (dimensionsIndoorTemp, valuesIndoorTemp) = makePieDashboardData(
-            indoorTemp.toFloat(),
-            -10f,
-            40f
-        )
-        //屋外温度を円グラフ用に整形
-        val (dimensionsKitchenTemp, valuesKitchenTemp) = makePieDashboardData(
-            kitchenTemp.toFloat(),
-            -10f,
-            40f
-        )
-        //屋内湿度を円グラフ用に整形
-        val (dimensionsShadeTemp, valuesShadeTemp) = makePieDashboardData(
-            shadeTemp.toFloat(),
-            -10f,
-            40f
-        )
-        //屋外湿度を円グラフ用に整形
-        val (dimensionsSunnyTemp, valuesSunnyTemp) = makePieDashboardData(
-            sunnyTemp.toFloat(),
-            -10f,
-            40f
-        )
         //描画フォーマット
         val indoorTempFormat = PieFormat(
             Pair(null, Color.WHITE),//凡例 (形状＋文字色)
@@ -128,31 +103,56 @@ class TempFragment(
             listOf(Color.RED, Color.GRAY),
             "false"
         )
-        //円グラフ描画
+        //屋内気温を円グラフ用データに整形
+        val (dimensionsIndoorTemp, valuesIndoorTemp) = makePieDashboardData(
+            indoorTemp.toFloat(),
+            -10f,
+            40f
+        )
+        //キッチン気温を円グラフ用に整形
+        val (dimensionsKitchenTemp, valuesKitchenTemp) = makePieDashboardData(
+            kitchenTemp.toFloat(),
+            -10f,
+            40f
+        )
+        //日陰気温を円グラフ用に整形
+        val (dimensionsShadeTemp, valuesShadeTemp) = makePieDashboardData(
+            shadeTemp.toFloat(),
+            -10f,
+            40f
+        )
+        //日なた気温を円グラフ用に整形
+        val (dimensionsSunnyTemp, valuesSunnyTemp) = makePieDashboardData(
+            sunnyTemp.toFloat(),
+            -10f,
+            40f
+        )
+        //①場所ごとにEntryのリストを作成
+        val indoorEntries = makePieChartEntries(dimensionsIndoorTemp, valuesIndoorTemp)
+        val kitchenEntries = makePieChartEntries(dimensionsKitchenTemp, valuesKitchenTemp)
+        val shadeEntries = makePieChartEntries(dimensionsShadeTemp, valuesShadeTemp)
+        val sunnyEntries = makePieChartEntries(dimensionsSunnyTemp, valuesSunnyTemp)
+        //②～⑦円グラフ描画
         setupPieChart(
-            dimensionsIndoorTemp,
-            valuesIndoorTemp,
+            indoorEntries,
             view.piechartTempIndoorTemp,
-            "室内温度",
+            "室内気温",
             indoorTempFormat
         )
         setupPieChart(
-            dimensionsKitchenTemp,
-            valuesKitchenTemp,
+            kitchenEntries,
             view.piechartTempKitchen,
-            "室外温度",
+            "室外気温",
             kitchenTempFormat
         )
         setupPieChart(
-            dimensionsShadeTemp,
-            valuesShadeTemp,
+            shadeEntries,
             view.piechartTempOutdoorShade,
             "室内湿度",
             shadeTempFormat
         )
         setupPieChart(
-            dimensionsSunnyTemp,
-            valuesSunnyTemp,
+            sunnyEntries,
             view.piechartTempOutdoorSunny,
             "室外湿度",
             sunnyTempFormat
@@ -203,18 +203,20 @@ class TempFragment(
                 Triple(false, null, null)
             )
         )
-        //場所ごとに必要期間のデータ抜き出してEntryのリストに入力
+        //①場所ごとに必要期間のデータ抜き出してEntryのリストに入力
         val places = tempSeriesData.keys//場所のリスト
-        val allLinesData: MutableMap<String, MutableList<Entry>> = mutableMapOf()
+        val allLinesEntries: MutableMap<String, MutableList<Entry>> = mutableMapOf()
         for(pl in places){
             //要素数が0なら処理を終了
             if(tempSeriesData[pl]?.size == 0) return
             //Entryにデータ入力
             val x = tempSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
             val y = tempSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
-            allLinesData[pl] = makeDateLineChartData(x, y, tempSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
+            allLinesEntries[pl] = makeDateLineChartData(x, y, tempSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
         }
-        setupLineChart(allLinesData, view.lineChartTempTimeSeries, tempSeriesFormat, tempLineFormat, context)
+
+        //②～⑦グラフの作成
+        setupLineChart(allLinesEntries, view.lineChartTempTimeSeries, tempSeriesFormat, tempLineFormat, context)
     }
 
     //温度推移データの描画
@@ -225,13 +227,6 @@ class TempFragment(
     ){
         //要素数が0なら終了
         if(tempSeriesData["max"]?.size == 0) return
-        //必要データをEntryのリストに入力
-        val x = tempSeriesData["max"]?.map{it.first}!!
-        val yHigh = tempSeriesData["max"]?.map{it.second.toFloat()}!!
-        val yLow = tempSeriesData["min"]?.map{it.second.toFloat()}!!
-        val yMidHigh = tempSeriesData["avg"]?.map{it.second.toFloat()+0.2f}!!
-        val yMidLow = tempSeriesData["avg"]?.map{it.second.toFloat()-0.2f}!!
-        val candleData = makeDateLineChartData(x, yHigh, yLow, yMidHigh, yMidLow)
 
         //グラフ全体のフォーマット
         val candleFormat = CandleFormat(
@@ -253,6 +248,15 @@ class TempFragment(
             "%.0f"//値表示の文字書式
         )
 
-        setupCandleStickChart(candleData, view.candleStickChartTempStats, candleFormat, context)
+        //①必要データをEntryのリストに入力
+        val x = tempSeriesData["max"]?.map{it.first}!!
+        val yHigh = tempSeriesData["max"]?.map{it.second.toFloat()}!!
+        val yLow = tempSeriesData["min"]?.map{it.second.toFloat()}!!
+        val yMidHigh = tempSeriesData["avg"]?.map{it.second.toFloat()+0.2f}!!
+        val yMidLow = tempSeriesData["avg"]?.map{it.second.toFloat()-0.2f}!!
+        val candleEntries = makeDateCandleChartData(x, yHigh, yLow, yMidHigh, yMidLow)
+
+        //②～⑦グラフの作成
+        setupCandleStickChart(candleEntries, view.candleStickChartTempStats, candleFormat, context)
     }
 }

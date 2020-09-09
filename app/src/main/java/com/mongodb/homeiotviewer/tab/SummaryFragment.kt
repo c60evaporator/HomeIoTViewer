@@ -104,11 +104,16 @@ class SummaryFragment(val newestSensorData: MutableList<TempHumidData>,
             listOf(Color.BLUE, Color.GRAY),
             "false"
         )
-        //円グラフ描画
-        setupPieChart(dimensionsIndoorTemp, valuesIndoorTemp, view.piechartTempIndoor, "室内温度", indoorTempFormat)
-        setupPieChart(dimensionsOutdoorTemp, valuesOutdoorTemp, view.piechartTempOutdoor, "室外温度", outdoorTempFormat)
-        setupPieChart(dimensionsIndoorHumid, valuesIndoorHumid, view.piechartHumidIndoor, "室内湿度", indoorHumidFormat)
-        setupPieChart(dimensionsOutdoorHumid, valuesOutdoorHumid, view.piechartHumidOutdoor, "室外湿度", outdoorHumidFormat)
+        //①場所ごとにEntryのリストを作成
+        val indoorTempEntries = makePieChartEntries(dimensionsIndoorTemp, valuesIndoorTemp)
+        val outdoorTempEntries = makePieChartEntries(dimensionsOutdoorTemp, valuesOutdoorTemp)
+        val indoorHumidEntries = makePieChartEntries(dimensionsIndoorHumid, valuesIndoorHumid)
+        val outdoorHumidEntries = makePieChartEntries(dimensionsOutdoorHumid, valuesOutdoorHumid)
+        //②～⑦グラフ描画
+        setupPieChart(indoorTempEntries, view.piechartTempIndoor, "室内温度", indoorTempFormat)
+        setupPieChart(outdoorTempEntries, view.piechartTempOutdoor, "室外温度", outdoorTempFormat)
+        setupPieChart(indoorHumidEntries, view.piechartHumidIndoor, "室内湿度", indoorHumidFormat)
+        setupPieChart(outdoorHumidEntries, view.piechartHumidOutdoor, "室外湿度", outdoorHumidFormat)
     }
 
     //センサ情報テーブル表示
