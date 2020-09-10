@@ -97,7 +97,7 @@ fun setupCandleStickChart(
     val candleData = CandleData(candleDataSet)
     //⑤CandleStickChartにCandleDataを格納
     candleStickChart.data = candleData
-    //③⑥グラフ全体フォーマットおよび凡例フォーマットの適用
+    //③⑥グラフ全体フォーマットおよびDataSetフォーマットの適用
     formatCandle(candleStickChart, candleDataSet, candleFormat, context)
     //日付軸の設定
     if(candleFormat.xAxisDateFormat != null) {

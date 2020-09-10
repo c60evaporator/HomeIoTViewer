@@ -76,9 +76,8 @@ fun formatPie(pieChart: PieChart, pieDataSet: PieDataSet, pieFormat: PieFormat){
     }
     else pieChart.legend.isEnabled = false //凡例無効
     //グラフ説明
-    val desc = pieChart.description
     when(pieFormat.descFormat){
-        "false" -> desc.isEnabled = false//非表示
+        "false" -> pieChart.description.isEnabled = false//非表示
     }
     //中央に表示する値
     if(pieFormat.centerText != "default"){
@@ -92,20 +91,16 @@ fun formatPie(pieChart: PieChart, pieDataSet: PieDataSet, pieFormat: PieFormat){
         }
     }
     //中央の塗りつぶし色(non nullのとき)
-    if(pieFormat.bgColor.second != null) {
-        pieChart.setHoleColor(pieFormat.bgColor.second!!)
-    }
+    if(pieFormat.bgColor.second != null) pieChart.setHoleColor(pieFormat.bgColor.second!!)
     //全体の背景色(non nullのとき)
-    if(pieFormat.bgColor.first != null) {
-        pieChart.setBackgroundColor(pieFormat.bgColor.first!!)
-    }
+    if(pieFormat.bgColor.first != null) pieChart.setBackgroundColor(pieFormat.bgColor.first!!)
     //太さ
-    pieChart.holeRadius = 75f
+    if(pieFormat.holeRadius != null) pieChart.holeRadius = pieFormat.holeRadius!!
+
     //グラフの色
-    //val colorList: List<Int> = listOf(Color.RED, Color.TRANSPARENT)
     pieDataSet.colors = pieFormat.colorList
     //値を非表示に
-    when(pieFormat.descFormat){
+    when(pieFormat.valueFormat){
         "false" -> pieDataSet.setDrawValues(false)
     }
 }
@@ -117,6 +112,7 @@ fun formatPie(pieChart: PieChart, pieDataSet: PieDataSet, pieFormat: PieFormat){
  * @param[descFormat]:グラフ説明(default:デフォルト, false:表示なし)
  * @param[centerText]:中央に表示するテキスト(default:表示なし, それ以外:記載したテキストを表示)
  * @param[centerTextFormat]:中央に表示するテキストのフォーマット(1項目:テキストサイズ(0fならデフォルト), 2項目:色(nullならデフォルト))
+ * @param[holeRadius]:中央の穴の半径(nullならデフォルト)
  * @param[bgColor]:塗りつぶし色(1項目:背景色(nullならデフォルト), 2項目:中央の色(nullならデフォルト))
  * @param[colorList]:グラフの色(dimensionsの数だけ指定が必要)
  * @param[valueFormat]:値の表示(default:デフォルト, false:表示なし)
@@ -127,6 +123,7 @@ class PieFormat(){
     var descFormat: String//グラフ説明
     var centerText: String//中央のテキスト
     var centerTextFormat: Pair<Float, Int?>//中央のテキストのフォーマット（サイズ＋色）
+    var holeRadius: Float?//中央の穴の半径
     var bgColor: Pair<Int?, Int?>//塗りつぶし色（背景＋中央）
     var colorList: List<Int>//グラフの色
     var valueFormat: String//値の表示
@@ -136,6 +133,7 @@ class PieFormat(){
         this.descFormat = "default" //デフォルト
         this.centerText = "default" //デフォルト
         this.centerTextFormat = Pair(0f, null)//デフォルト
+        this.holeRadius = null //デフォルト
         this.bgColor = Pair(null, null)//デフォルト
         this.colorList = ColorTemplate.COLORFUL_COLORS.toList()//デフォルトはCOLORFUL_COLORS
         this.valueFormat = "default" //デフォルト
@@ -145,6 +143,7 @@ class PieFormat(){
                 descFormat: String,
                 centerText: String,
                 centerTextFormat: Pair<Float, Int?>,
+                holeRadius: Float?,
                 bgColor: Pair<Int?, Int?>,
                 colorList: List<Int>,
                 valueFormat: String
@@ -153,6 +152,7 @@ class PieFormat(){
         this.descFormat = descFormat
         this.centerText = centerText
         this.centerTextFormat = centerTextFormat
+        this.holeRadius = holeRadius
         this.bgColor = bgColor
         this.colorList = colorList
         this.valueFormat = valueFormat

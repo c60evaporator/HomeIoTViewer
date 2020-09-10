@@ -72,6 +72,7 @@ class TempFragment(
             "false",
             "屋内\n${"%.1f".format(indoorTemp)}°C",
             Pair(16f, Color.WHITE),
+            75f,
             Pair(null, Color.TRANSPARENT),
             listOf(Color.rgb(243, 201, 14), Color.GRAY),
             "false"
@@ -81,6 +82,7 @@ class TempFragment(
             "false",
             "ｷｯﾁﾝ\n${"%.1f".format(kitchenTemp)}°C",
             Pair(16f, Color.WHITE),
+            75f,
             Pair(null, Color.TRANSPARENT),
             listOf(Color.rgb(128, 255, 0), Color.GRAY),
             "false"
@@ -90,6 +92,7 @@ class TempFragment(
             "false",
             "日陰\n${"%.1f".format(shadeTemp)}°C",
             Pair(16f, Color.WHITE),
+            75f,
             Pair(null, Color.TRANSPARENT),
             listOf(Color.rgb(185, 122, 87), Color.GRAY),
             "false"
@@ -99,6 +102,7 @@ class TempFragment(
             "false",
             "日なた\n${"%.1f".format(sunnyTemp)}°C",
             Pair(16f, Color.WHITE),
+            75f,
             Pair(null, Color.TRANSPARENT),
             listOf(Color.RED, Color.GRAY),
             "false"
