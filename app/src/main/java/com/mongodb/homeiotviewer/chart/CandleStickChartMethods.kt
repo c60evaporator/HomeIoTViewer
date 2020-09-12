@@ -3,9 +3,11 @@ package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変
 import android.content.Context
 import com.github.mikephil.charting.charts.CandleStickChart
 import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.DefaultAxisValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -89,6 +91,15 @@ fun setupCandleStickChart(
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
+    //xがdate型だがxAxisDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
+    val dataType = candleEntries.firstOrNull()?.data?.javaClass
+    if(dataType?.name == "java.util.Date" && candleChartFormat.xAxisDateFormat == null){
+        candleChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
+        candleChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+    }
+    //X軸のラベルをリセット(過去のラベルが残る可能性があるため)
+    candleStickChart.xAxis.valueFormatter = DefaultAxisValueFormatter(candleEntries.size)
+
     //②CandleDataSetを作成
     val candleDataSet = CandleDataSet(candleEntries, "SampleChandleData")
     //③CandleDataSetのフォーマット適用

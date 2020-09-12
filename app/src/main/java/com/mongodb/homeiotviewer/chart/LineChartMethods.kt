@@ -5,10 +5,12 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.DefaultAxisValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -94,6 +96,14 @@ fun setupLineChart(
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
+    //xがdate型だがxAxisDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
+    val dataType = allLinesEntries[allLinesEntries.keys.first()]?.firstOrNull()?.data?.javaClass
+    if(dataType?.name == "java.util.Date" && lineChartFormat.xAxisDateFormat == null){
+        lineChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
+        lineChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+    }
+    //X軸のラベルをリセット(過去のラベルが残る可能性があるため)
+    lineChart.xAxis.valueFormatter = DefaultAxisValueFormatter(allLinesEntries[allLinesEntries.keys.first()]!!.size)
 
     //②LineDataSetのリストを作成
     val lineDataSets = mutableListOf<ILineDataSet>()
