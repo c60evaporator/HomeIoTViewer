@@ -1,13 +1,10 @@
 package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
-import android.graphics.Color
 import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.components.Legend
-import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.utils.ColorTemplate
+import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlin.math.max
 
 /**
@@ -47,114 +44,97 @@ fun makePieChartEntries(dimensions: List<String>, values: List<Float>): MutableL
  * @param[pieChartData]:円グラフのデータ本体
  * @param[pieChart]:描画対象のPieChart部品
  * @param[label]:グラフのタイトルラベル
- * @param[pieFormat]:円グラフのフォーマットを指定(独自クラスPieFormatで記載)
+ * @param[pieChartFormat]:円グラフのChartフォーマット
+ * @param[pieDataSetFormat]:円グラフのDataSetフォーマット
  */
-fun setupPieChart(pieEntries: MutableList<PieEntry>, pieChart: PieChart, label: String, pieFormat: PieFormat) {
+fun setupPieChart(pieEntries: MutableList<PieEntry>,
+                  pieChart: PieChart,
+                  label: String,
+                  pieChartFormat: PieChartFormat,
+                  pieDataSetFormat: PieDataSetFormat
+) {
     //②PieDataSetにデータ格納
     val pieDataSet = PieDataSet(pieEntries, label)
+    //③PieDataSetにフォーマット指定
+    formatPieDataSet(pieDataSet, pieDataSetFormat)
     //④PieDataにPieDataSetを格納
     val pieData = PieData(pieDataSet)
     //⑤piechartにPieDataをセット
     pieChart.data = pieData
-    //③⑥円グラフ描画フォーマットの適用
-    formatPie(pieChart, pieDataSet, pieFormat)
+    //⑥円グラフ描画フォーマットの適用
+    formatPieChart(pieChart, pieChartFormat)
     //⑦piechart更新
     pieChart.invalidate()
 }
 
 /**
- * 円グラフ描画フォーマットの適用
- * @param[pieChart]:描画対象のPieChart部品
- * @param[pieDataSet]:描画対象のPieDataSet
- * @param[pieFormat]:円グラフのフォーマットを指定(独自クラスPieFormatで記載)
+ * ⑥Chartフォーマットの適用
+ * @param[pieChart]:適用対象のPieChart
+ * @param[pieChartFormat]:Chartフォーマット
  */
-fun formatPie(pieChart: PieChart, pieDataSet: PieDataSet, pieFormat: PieFormat){
+fun formatPieChart(pieChart: PieChart, pieChartFormat: PieChartFormat){
     //凡例
-    if(pieFormat.legendFormat.first != null){
-        pieChart.legend.form = pieFormat.legendFormat.first
-        pieChart.legend.textColor = pieFormat.legendFormat.second
+    if(pieChartFormat.legendFormat != null){
+        //凡例形状
+        pieChart.legend.form = pieChartFormat.legendFormat
+        //凡例文字色
+        if(pieChartFormat.legentTextColor != null) pieChart.legend.textColor = pieChartFormat.legentTextColor!!
     }
-    else pieChart.legend.isEnabled = false //凡例無効
+    else pieChart.legend.isEnabled = false //凡例非表示のとき
     //グラフ説明
-    when(pieFormat.descFormat){
-        "false" -> pieChart.description.isEnabled = false//非表示
+    if(pieChartFormat.description != null) {
+        pieChart.description.text = pieChartFormat.description
     }
-    //中央に表示する値
-    if(pieFormat.centerText != "default"){
-        pieChart.centerText = pieFormat.centerText
-        //値のテキストのフォーマット（サイズ＋色）
-        if(pieFormat.centerTextFormat.first != 0f) {
-            pieChart.setCenterTextSize(pieFormat.centerTextFormat.first)
-        }
-        if(pieFormat.centerTextFormat.second != null) {
-            pieChart.setCenterTextColor(pieFormat.centerTextFormat.second!!)
-        }
-    }
-    //中央の塗りつぶし色(non nullのとき)
-    if(pieFormat.bgColor.second != null) pieChart.setHoleColor(pieFormat.bgColor.second!!)
-    //全体の背景色(non nullのとき)
-    if(pieFormat.bgColor.first != null) pieChart.setBackgroundColor(pieFormat.bgColor.first!!)
-    //太さ
-    if(pieFormat.holeRadius != null) pieChart.holeRadius = pieFormat.holeRadius!!
+    else pieChart.description.isEnabled = false//グラフ説明非表示のとき
+    //全体の背景色
+    if(pieChartFormat.bgColor != null) pieChart.setBackgroundColor(pieChartFormat.bgColor!!)
+    //タッチ動作
+    pieChart.setTouchEnabled(pieChartFormat.touch)
 
-    //グラフの色
-    pieDataSet.colors = pieFormat.colorList
-    //値を非表示に
-    when(pieFormat.valueFormat){
-        "false" -> pieDataSet.setDrawValues(false)
+    //中央に表示する値
+    if(pieChartFormat.centerText != null){
+        //表示するテキスト
+        pieChart.centerText = pieChartFormat.centerText
+        //値のテキストサイズ
+        if(pieChartFormat.centerTextSize != null) pieChart.setCenterTextSize(pieChartFormat.centerTextSize!!)
+        //値のテキストカラー
+        if(pieChartFormat.centerTextColor != null) pieChart.setCenterTextColor(pieChartFormat.centerTextColor!!)
     }
+    //中央の塗りつぶし色
+    if(pieChartFormat.centorColor != null) pieChart.setHoleColor(pieChartFormat.centorColor!!)
+    //中央の穴の半径
+    if(pieChartFormat.holeRadius != null) pieChart.holeRadius = pieChartFormat.holeRadius!!
 }
 
 /**
- * 円グラフ描画フォーマット指定用クラス
- * @constructor 指定なしなら、全てデフォルト設定を使用
- * @param[legendFormat]:凡例(1項目:形状(nullなら凡例表示なし), 2項目:文字色)
- * @param[descFormat]:グラフ説明(default:デフォルト, false:表示なし)
- * @param[centerText]:中央に表示するテキスト(default:表示なし, それ以外:記載したテキストを表示)
- * @param[centerTextFormat]:中央に表示するテキストのフォーマット(1項目:テキストサイズ(0fならデフォルト), 2項目:色(nullならデフォルト))
- * @param[holeRadius]:中央の穴の半径(nullならデフォルト)
- * @param[bgColor]:塗りつぶし色(1項目:背景色(nullならデフォルト), 2項目:中央の色(nullならデフォルト))
- * @param[colorList]:グラフの色(dimensionsの数だけ指定が必要)
- * @param[valueFormat]:値の表示(default:デフォルト, false:表示なし)
+ * ③DataSetフォーマットの適用
+ * @param[pieDataSet]:適用対象のPieDataSet
+ * @param[pieDataSetFormat]:DataSetフォーマット
  */
-class PieFormat(){
-    //プロパティ
-    var legendFormat: Pair<Legend.LegendForm?, Int>//凡例 (形状＋文字色)
-    var descFormat: String//グラフ説明
-    var centerText: String//中央のテキスト
-    var centerTextFormat: Pair<Float, Int?>//中央のテキストのフォーマット（サイズ＋色）
-    var holeRadius: Float?//中央の穴の半径
-    var bgColor: Pair<Int?, Int?>//塗りつぶし色（背景＋中央）
-    var colorList: List<Int>//グラフの色
-    var valueFormat: String//値の表示
-    //プライマリコンストラクタ（デフォルト状態）
-    init{
-        this.legendFormat = Pair(Legend.LegendForm.DEFAULT, Color.BLACK) //デフォルト＋黒
-        this.descFormat = "default" //デフォルト
-        this.centerText = "default" //デフォルト
-        this.centerTextFormat = Pair(0f, null)//デフォルト
-        this.holeRadius = null //デフォルト
-        this.bgColor = Pair(null, null)//デフォルト
-        this.colorList = ColorTemplate.COLORFUL_COLORS.toList()//デフォルトはCOLORFUL_COLORS
-        this.valueFormat = "default" //デフォルト
+fun formatPieDataSet(pieDataSet: PieDataSet, pieDataSetFormat: PieDataSetFormat){
+    //値のフォーマット
+    //値表示するとき
+    if(pieDataSetFormat.drawValue){
+        pieDataSet.setDrawValues(true)
+        //文字色
+        if(pieDataSetFormat.valueTextColor != null) pieDataSet.valueTextColor = pieDataSetFormat.valueTextColor!!
+        //文字サイズ
+        if(pieDataSetFormat.valueTextSize != null) pieDataSet.valueTextSize = pieDataSetFormat.valueTextSize!!
+        //文字書式の適用
+        if(pieDataSetFormat.valueTextFormatter != null){
+            pieDataSet.valueFormatter = object: ValueFormatter(){
+                override fun getFormattedValue(value: Float): String{
+                    return pieDataSetFormat.valueTextFormatter!!.format(value)
+                }
+            }
+        }
     }
-    //セカンダリコンストラクタ（各フォーマットを指定）
-    constructor(legendFormat: Pair<Legend.LegendForm?, Int>,
-                descFormat: String,
-                centerText: String,
-                centerTextFormat: Pair<Float, Int?>,
-                holeRadius: Float?,
-                bgColor: Pair<Int?, Int?>,
-                colorList: List<Int>,
-                valueFormat: String
-    ): this(){
-        this.legendFormat = legendFormat
-        this.descFormat = descFormat
-        this.centerText = centerText
-        this.centerTextFormat = centerTextFormat
-        this.holeRadius = holeRadius
-        this.bgColor = bgColor
-        this.colorList = colorList
-        this.valueFormat = valueFormat
+    //値表示しないとき
+    else pieDataSet.setDrawValues(false)
+    //使用する軸
+    if(pieDataSetFormat.axisDependency != null) {
+        pieDataSet.axisDependency = pieDataSetFormat.axisDependency
     }
+    //グラフの色
+    pieDataSet.colors = pieDataSetFormat.colorList
 }

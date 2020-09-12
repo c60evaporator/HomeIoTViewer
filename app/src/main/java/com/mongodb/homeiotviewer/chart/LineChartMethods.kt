@@ -1,16 +1,14 @@
 package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
-import android.graphics.Color
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -86,13 +84,13 @@ fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean):
 fun setupLineChart(
     allLinesEntries: MutableMap<String, MutableList<Entry>>,
     lineChart: LineChart,
-    allLinesFormat: AllLinesFormat,
-    oneLineFormat: Map<String, OneLineFormat>,
+    lineChartFormat: LineChartFormat,
+    dataSetFormats: Map<String, LineDataSetFormat>,
     context: Context
 ) {
     //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、例外を投げる
-    if((allLinesFormat.xAxisDateFormat == null && allLinesFormat.toolTipFormat.second != null)
-        || (allLinesFormat.xAxisDateFormat != null && allLinesFormat.toolTipFormat.second == null))
+    if((lineChartFormat.xAxisDateFormat == null && lineChartFormat.toolTipDateFormat != null)
+        || (lineChartFormat.xAxisDateFormat != null && lineChartFormat.toolTipDateFormat == null))
     {
         throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
     }
@@ -101,8 +99,8 @@ fun setupLineChart(
     val lineDataSets = mutableListOf<ILineDataSet>()
     for((k, v) in allLinesEntries){
         var lineDataSet: ILineDataSet = LineDataSet(v, k).apply{
-            //③線ごとフォーマット適用
-            formatOneLine(this, oneLineFormat[k]!!)
+            //③DataSetフォーマット適用
+            formatLineDataSet(this, dataSetFormats[k]!!)
         }
         lineDataSets.add(lineDataSet)
     }
@@ -112,13 +110,13 @@ fun setupLineChart(
     //⑤LineChartにLineDataを格納
     lineChart.data = lineData
     //⑥グラフ全体フォーマットの適用
-    formatAllLines(lineChart, allLinesFormat, context)
+    formatLineChart(lineChart, lineChartFormat, context)
     //日付軸の設定
-    if(allLinesFormat.xAxisDateFormat != null) {
+    if(lineChartFormat.xAxisDateFormat != null) {
         //全ラベル表示のとき
-        if(!allLinesFormat.timeAccuracy){
+        if(!lineChartFormat.timeAccuracy){
             //X軸ラベルのリスト取得
-            val xLabel = allLinesEntries[allLinesEntries.keys.first()]?.map { allLinesFormat.xAxisDateFormat?.format(it.data) }
+            val xLabel = allLinesEntries[allLinesEntries.keys.first()]?.map { lineChartFormat.xAxisDateFormat?.format(it.data) }
             //上記リストをX軸ラベルに設定
             lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(xLabel)
         }
@@ -128,8 +126,8 @@ fun setupLineChart(
             val size = allLinesEntries[allLinesEntries.keys.first()]?.size!!
             val xLabel = allLinesEntries[allLinesEntries.keys.first()]?.mapIndexed { index, entry ->
                 when(index){
-                    0 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
-                    size - 1 -> allLinesFormat.xAxisDateFormat?.format(entry.data)
+                    0 -> lineChartFormat.xAxisDateFormat?.format(entry.data)
+                    size - 1 -> lineChartFormat.xAxisDateFormat?.format(entry.data)
                     else -> ""
                 }
             }
@@ -141,53 +139,88 @@ fun setupLineChart(
     lineChart.invalidate()
 }
 
-fun formatAllLines(lineChart: LineChart, allLinesFormat: AllLinesFormat, context: Context){
+
+/**
+ * ⑥Chartフォーマットの適用
+ * @param[lineChart]:適用対象のlineChart
+ * @param[lineChartFormat]:Chartフォーマット
+ * @param[context]:呼び出し元のActivityあるいはFragmentのContext
+ */
+fun formatLineChart(lineChart: LineChart, lineChartFormat: LineChartFormat, context: Context){
     //凡例
-    if(allLinesFormat.legendFormat.first != null){
-        lineChart.legend.textColor = allLinesFormat.legendFormat.first!!
-        lineChart.legend.form = allLinesFormat.legendFormat.second
-    }
-    else lineChart.legend.isEnabled = false //凡例無効
-    //グラフ説明
-    when(allLinesFormat.descFormat){
-        "false" -> lineChart.description.isEnabled = false//非表示
-    }
-    //背景色(non nullのとき)
-    if(allLinesFormat.bgColor != null) {
-        lineChart.setBackgroundColor(allLinesFormat.bgColor!!)
-    }
-    //X軸ラベル表示有無
-    if(allLinesFormat.xAxis.first == null) {
-        lineChart.xAxis.isEnabled = false
-    }
-    //X軸の文字色
-    else{
-        lineChart.xAxis.textColor = allLinesFormat.xAxis.first!!
-        //文字サイズ
-        if(allLinesFormat.xAxis.second != null) {
-            lineChart.xAxis.textSize = allLinesFormat.xAxis.second!!
+    if(lineChartFormat.legendFormat != null){
+        //凡例形状
+        lineChart.legend.form = lineChartFormat.legendFormat
+        //凡例文字色
+        if(lineChartFormat.legentTextColor != null) {
+            lineChart.legend.textColor = lineChartFormat.legentTextColor!!
         }
     }
-    // 左Y軸の設定
-    if(allLinesFormat.yAxisLeft == null){
-        lineChart.axisLeft.isEnabled = false
+    else lineChart.legend.isEnabled = false //凡例非表示のとき
+    //グラフ説明
+    if(lineChartFormat.description != null) {
+        lineChart.description.text = lineChartFormat.description
     }
-    else{
-        lineChart.axisLeft.textColor = allLinesFormat.yAxisLeft!!
+    else lineChart.description.isEnabled = false//グラフ説明非表示のとき
+    //全体の背景色
+    if(lineChartFormat.bgColor != null) {
+        lineChart.setBackgroundColor(lineChartFormat.bgColor!!)
     }
-    //左Y軸の表示範囲
-    if(allLinesFormat.yAxisLeftMinMax.first != null){
-        lineChart.axisLeft.axisMinimum = allLinesFormat.yAxisLeftMinMax.first!!
-    }
-    if(allLinesFormat.yAxisLeftMinMax.second != null){
-        lineChart.axisLeft.axisMaximum = allLinesFormat.yAxisLeftMinMax.second!!
-    }
-    // 右Y軸は表示しない
-    lineChart.axisRight.isEnabled = false
     //タッチ動作
-    lineChart.setTouchEnabled(allLinesFormat.touch)
+    lineChart.setTouchEnabled(lineChartFormat.touch)
+
+    //X軸ラベルの設定
+    if(lineChartFormat.xAxisEnabled) {
+        lineChart.xAxis.isEnabled = true//X軸ラベル表示
+        //文字色
+        if(lineChartFormat.xAxisTextColor != null) {
+            lineChart.xAxis.textColor = lineChartFormat.xAxisTextColor!!
+        }
+        //文字サイズ
+        if(lineChartFormat.xAxisTextSize != null) {
+            lineChart.xAxis.textSize = lineChartFormat.xAxisTextSize!!
+        }
+    }
+    else lineChart.xAxis.isEnabled = false//X軸ラベル非表示のとき
+
+    // 左Y軸ラベルの設定
+    if(lineChartFormat.yAxisLeftEnabled){
+        lineChart.axisLeft.isEnabled = true//左Y軸ラベル表示
+        //文字色
+        if(lineChartFormat.yAxisLeftTextColor != null) {
+            lineChart.axisLeft.textColor = lineChartFormat.yAxisLeftTextColor!!
+        }
+        //文字サイズ
+        if(lineChartFormat.yAxisLeftTextSize != null) {
+            lineChart.axisLeft.textSize = lineChartFormat.yAxisLeftTextSize!!
+        }
+        //表示範囲の下限
+        if(lineChartFormat.yAxisLeftMin != null){
+            lineChart.axisLeft.axisMinimum = lineChartFormat.yAxisLeftMin!!
+        }
+        //表示範囲の上限
+        if(lineChartFormat.yAxisLeftMax != null){
+            lineChart.axisLeft.axisMaximum = lineChartFormat.yAxisLeftMax!!
+        }
+    }
+    else lineChart.axisLeft.isEnabled = false//左Y軸ラベル非表示のとき
+
+    // 右Y軸ラベルの設定
+    if(lineChartFormat.yAxisRightEnabled){
+        lineChart.axisRight.isEnabled = true//右Y軸ラベル表示
+        //文字色
+        if(lineChartFormat.yAxisRightTextColor != null) {
+            lineChart.axisRight.textColor = lineChartFormat.yAxisRightTextColor!!
+        }
+        //文字サイズ
+        if(lineChartFormat.yAxisRightTextSize != null) {
+            lineChart.axisRight.textSize = lineChartFormat.yAxisRightTextSize!!
+        }
+    }
+    else lineChart.axisRight.isEnabled = false//右Y軸ラベル非表示のとき
+
     //ズーム設定
-    when(allLinesFormat.zoom.first){
+    when(lineChartFormat.zoomDirection){
         null -> lineChart.setScaleEnabled(false)
         "x" -> {
             lineChart.setScaleXEnabled(true)
@@ -199,15 +232,17 @@ fun formatAllLines(lineChart: LineChart, allLinesFormat: AllLinesFormat, context
         }
         "xy" -> {
             lineChart.setScaleEnabled(true)
-            lineChart.setPinchZoom(allLinesFormat.zoom.second)
+            lineChart.setPinchZoom(lineChartFormat.zoomPinch)
         }
     }
 
     //ツールチップの表示
-    if(allLinesFormat.toolTipFormat.first != null) {
+    if(lineChartFormat.toolTipDirection != null) {
         val mv: SimpleMarkerView = SimpleMarkerView(
-            allLinesFormat.toolTipFormat,
-            allLinesFormat.toolTipUnit,
+            lineChartFormat.toolTipDirection,
+            lineChartFormat.toolTipDateFormat,
+            lineChartFormat.toolTipUnitX,
+            lineChartFormat.toolTipUnitY,
             context,
             R.layout.simple_marker_view,
             20f
@@ -217,134 +252,61 @@ fun formatAllLines(lineChart: LineChart, allLinesFormat: AllLinesFormat, context
     }
 }
 
+/**
+ * ③DataSetフォーマットの適用
+ * @param[lineDataSet]:適用対象のLineDataSet
+ * @param[lineDataSetFormat]:DataSetフォーマット
+ */
+fun formatLineDataSet(lineDataSet: LineDataSet, lineDataSetFormat: LineDataSetFormat){
+    //値のフォーマット
+    //値表示するとき
+    if(lineDataSetFormat.drawValue){
+        lineDataSet.setDrawValues(true)
+        //文字色
+        if(lineDataSetFormat.valueTextColor != null) lineDataSet.valueTextColor = lineDataSetFormat.valueTextColor!!
+        //文字サイズ
+        if(lineDataSetFormat.valueTextSize != null) lineDataSet.valueTextSize = lineDataSetFormat.valueTextSize!!
+        //文字書式の適用
+        if(lineDataSetFormat.valueTextFormatter != null){
+            lineDataSet.valueFormatter = object: ValueFormatter(){
+                override fun getFormattedValue(value: Float): String{
+                    return lineDataSetFormat.valueTextFormatter!!.format(value)
+                }
+            }
+        }
+    }
+    //値表示しないとき
+    else lineDataSet.setDrawValues(false)
+    //使用する軸
+    if(lineDataSetFormat.axisDependency != null) {
+        lineDataSet.axisDependency = lineDataSetFormat.axisDependency
+    }
 
-fun formatOneLine(lineDataSet: LineDataSet, oneLineFormat: OneLineFormat){
     //線の色
-    lineDataSet.color = oneLineFormat.lineColor
-    //線形状のフォーマット
-    if(oneLineFormat.lineShape.first != null)//線の幅
+    lineDataSet.color = lineDataSetFormat.lineColor
+    //線の幅
+    if(lineDataSetFormat.lineWidth != null)
     {
-        lineDataSet.lineWidth = oneLineFormat.lineShape.first!!
+        lineDataSet.lineWidth = lineDataSetFormat.lineWidth!!
     }
-    if(oneLineFormat.lineShape.second != null)//フィッティング法
+    //フィッティング法
+    if(lineDataSetFormat.fittingMode != null)
     {
-        lineDataSet.mode = oneLineFormat.lineShape.second!!
+        lineDataSet.mode = lineDataSetFormat.fittingMode!!
     }
+
     //データ点のフォーマット
-    lineDataSet.setDrawCircles(oneLineFormat.circleFormat.first)
-    if(oneLineFormat.circleFormat.first)
-    {
-        if(oneLineFormat.circleFormat.second != null){
-            lineDataSet.setCircleColor(oneLineFormat.circleFormat.second!!)
+    //データ点表示するとき
+    if(lineDataSetFormat.drawCircles){
+        lineDataSet.setDrawCircles(true)
+        //データ点の色
+        if(lineDataSetFormat.circleColor != null){
+            lineDataSet.setCircleColor(lineDataSetFormat.circleColor!!)
         }
-        if(oneLineFormat.circleFormat.third != null){
-            lineDataSet.circleRadius = oneLineFormat.circleFormat.third!!
+        if(lineDataSetFormat.circleRadius!= null){
+            lineDataSet.circleRadius = lineDataSetFormat.circleRadius!!
         }
     }
-}
-
-/**
- * 折れ線グラフ全体描画フォーマット指定用クラス
- * @constructor 指定なしなら、全てデフォルト設定を使用
- * @param[legendFormat]:凡例(1項目:文字色(nullなら凡例表示なし), 2項目:形状)
- * @param[descFormat]:グラフ説明(default:デフォルト, false:表示なし)
- * @param[bgColor]:塗りつぶし色(nullならデフォルト)
- * @param[xAxis]:X軸の設定(1項目:文字色(nullなら表示なし), 2項目:文字サイズ(nullならデフォルト))
- * @param[xAxisDateFormat]:X軸の日付軸設定(nullなら日付軸ではない)
- * @param[yAxisLeft]:左Y軸の文字色(nullなら表示なし)
- * @param[yAxisLeftMinMax]:左Y軸の表示範囲(1項目:最小値(nullならデフォルト), 2項目:最大値(nullならデフォルト))
- * @param[touch]:タッチ操作の有効(trueなら有効、falseなら無効)
- * @param[zoom]:ズーム設定(1項目:ズームの方向(null, x, y, xy), 2項目:ピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定))
- * @param[toolTipFormat]:ツールチップ設定(1項目:表示内容(null, x, y, xy), 2項目:日付のフォーマット(日付軸のときのみ、それ以外ならnull))
- * @param[toolTipUnit]:ツールチップの表示単位(1項目:x軸, 2項目:y軸)
- * @param[timeAccuracy]:時系列グラフのX軸を正確にプロットするか(trueなら正確に表示するがラベルは最大最小値のみ、falseなら正確性落ちるが全ラベル表示)
- */
-class AllLinesFormat(){
-    //プロパティ
-    var legendFormat: Pair<Int?, Legend.LegendForm>//凡例 (文字色＋形状)
-    var descFormat: String//グラフ説明
-    var bgColor: Int?//塗りつぶし色（背景）
-    var xAxis: Pair<Int?, Float?>//X軸の設定（文字色＋文字サイズ）
-    var xAxisDateFormat: SimpleDateFormat?//X軸の日付軸設定
-    var yAxisLeft: Int?//左Y軸の設定（文字色）
-    var yAxisLeftMinMax: Pair<Float?, Float?>//左Y軸の表示範囲(最小値＋最大値)
-    var touch: Boolean//タッチ操作
-    var zoom: Pair<String?, Boolean>//ズーム設定(X方向＋ピンチ動作をXY同時にするか)
-    var toolTipFormat: Pair<String?, SimpleDateFormat?>//ツールチップ表示
-    var toolTipUnit: Pair<String, String>//ツールチップの表示単位
-    var timeAccuracy: Boolean//時系列グラフのX軸を正確にプロットするか
-    //プライマリコンストラクタ（デフォルト状態）
-    init{
-        this.legendFormat = Pair(Color.BLACK, Legend.LegendForm.DEFAULT) //黒＋デフォルト
-        this.descFormat = "default" //デフォルト
-        this.bgColor = null//デフォルト
-        this.xAxis = Pair(Color.BLACK, null)//黒＋デフォルト
-        this.xAxisDateFormat = null//日付軸ではない
-        this.yAxisLeft = Color.BLACK//黒
-        this.yAxisLeftMinMax = Pair(null, null)//最大最小ともにデフォルト
-        this.touch = true//タッチ有効
-        this.zoom = Pair("xy", true)//どちらも許可
-        this.toolTipFormat = Pair(null, null)//表示なし
-        this.toolTipUnit = Pair("", "")//空文字
-        this.timeAccuracy = false//全ラベル表示(X軸の正確性は落ちる)
-    }
-    //セカンダリコンストラクタ（各フォーマットを指定）
-    constructor(
-        legendFormat: Pair<Int?, Legend.LegendForm>,
-        descFormat: String,
-        bgColor: Int?,
-        xAxis: Pair<Int?, Float?>,
-        xAxisDateFormat: SimpleDateFormat?,
-        yAxisLeft: Int?,
-        yAxisLeftMinMax: Pair<Float?, Float?>,
-        touch: Boolean,
-        zoom: Pair<String?, Boolean>,
-        toolTipFormat: Pair<String?, SimpleDateFormat?>,
-        toolTipUnit: Pair<String, String>,
-        timeAccuracy: Boolean
-    ): this(){
-        this.legendFormat = legendFormat
-        this.descFormat = descFormat
-        this.bgColor = bgColor
-        this.xAxis = xAxis
-        this.xAxisDateFormat = xAxisDateFormat
-        this.yAxisLeft = yAxisLeft
-        this.yAxisLeftMinMax = yAxisLeftMinMax
-        this.touch = touch
-        this.zoom = zoom
-        this.toolTipFormat = toolTipFormat
-        this.toolTipUnit = toolTipUnit
-        this.timeAccuracy = timeAccuracy
-    }
-}
-
-/**
- * 折れ線グラフ線ごと描画フォーマット指定用クラス
- * @constructor 指定なしなら、全てデフォルト設定を使用
- * @param[lineColor]:線の色
- * @param[lineShape]:線形状のフォーマット(1項目:太さ(nullならデフォルト), 2項目:フィッティング法(nullならデフォルト))
- * @param[circleFormat]:データ点のフォーマット(1項目:有無(falseなら表示なし), 2項目:色(nullならデフォルト), 3項目:大きさ(nullならデフォルト))
- */
-class OneLineFormat(){
-    //プロパティ
-    var lineColor: Int//線の色
-    var lineShape: Pair<Float?, LineDataSet.Mode?>//線形状のフォーマット
-    var circleFormat: Triple<Boolean, Int?, Float?>//データ点のフォーマット
-    //プライマリコンストラクタ（デフォルト状態）
-    init{
-        this.lineColor = Color.BLUE//デフォルトは青
-        this.lineShape = Pair(null, null) //線の幅、フィッティング法ともにデフォルト
-        this.circleFormat = Triple(true, null, null)//デフォルト
-    }
-    //セカンダリコンストラクタ（各フォーマットを指定）
-    constructor(
-        lineColor: Int,
-        lineShape: Pair<Float?, LineDataSet.Mode?>,
-        circleFormat: Triple<Boolean, Int?, Float?>
-    )
-            : this(){
-        this.lineColor = lineColor
-        this.lineShape = lineShape
-        this.circleFormat = circleFormat
-    }
+    //データ点表示しないとき
+    else lineDataSet.setDrawCircles(false)
 }

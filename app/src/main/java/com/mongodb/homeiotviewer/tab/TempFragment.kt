@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
@@ -66,47 +66,90 @@ class TempFragment(
         val kitchenTemp = kitchenData.mapNotNull { it.temperature }.average()
         val shadeTemp = shadeData.mapNotNull { it.temperature }.average()
         val sunnyTemp = sunnyData.mapNotNull { it.temperature }.average()
-        //描画フォーマット
-        val indoorTempFormat = PieFormat(
-            Pair(null, Color.WHITE),//凡例 (形状＋文字色)
-            "false",
-            "屋内\n${"%.1f".format(indoorTemp)}°C",
-            Pair(16f, Color.WHITE),
-            75f,
-            Pair(null, Color.TRANSPARENT),
-            listOf(Color.rgb(243, 201, 14), Color.GRAY),
-            "false"
+
+        //Chartフォーマット
+        val indoorChartFormat = PieChartFormat(
+            null,//凡例形状
+            Color.WHITE,//凡例 (形状＋文字色)
+            null,//グラフ説明
+            null,//背景色
+            false,//タッチ操作の有効
+            "屋内\n${"%.1f".format(indoorTemp)}°C",//中央に表示するテキスト
+            16f,//中央に表示するテキストサイズ
+            Color.WHITE,//中央に表示するテキストカラー
+            75f,//中央の穴の半径
+            Color.TRANSPARENT//中央の塗りつぶし色
         )
-        val kitchenTempFormat = PieFormat(
-            Pair(null, Color.WHITE),//凡例 (形状＋文字色)
-            "false",
-            "ｷｯﾁﾝ\n${"%.1f".format(kitchenTemp)}°C",
-            Pair(16f, Color.WHITE),
-            75f,
-            Pair(null, Color.TRANSPARENT),
-            listOf(Color.rgb(128, 255, 0), Color.GRAY),
-            "false"
+        val kitchenChartFormat = PieChartFormat(
+            null,//凡例形状
+            Color.WHITE,//凡例 (形状＋文字色)
+            null,//グラフ説明
+            null,//背景色
+            false,//タッチ操作の有効
+            "ｷｯﾁﾝ\n${"%.1f".format(kitchenTemp)}°C",//中央に表示するテキスト
+            16f,//中央に表示するテキストサイズ
+            Color.WHITE,//中央に表示するテキストカラー
+            75f,//中央の穴の半径
+            Color.TRANSPARENT//中央の塗りつぶし色
         )
-        val shadeTempFormat = PieFormat(
-            Pair(null, Color.WHITE),//凡例 (形状＋文字色)
-            "false",
-            "日陰\n${"%.1f".format(shadeTemp)}°C",
-            Pair(16f, Color.WHITE),
-            75f,
-            Pair(null, Color.TRANSPARENT),
-            listOf(Color.rgb(185, 122, 87), Color.GRAY),
-            "false"
+        val shadeChartFormat = PieChartFormat(
+            null,//凡例形状
+            Color.WHITE,//凡例 (形状＋文字色)
+            null,//グラフ説明
+            null,//背景色
+            false,//タッチ操作の有効
+            "日陰\n${"%.1f".format(shadeTemp)}°C",//中央に表示するテキスト
+            16f,//中央に表示するテキストサイズ
+            Color.WHITE,//中央に表示するテキストカラー
+            75f,//中央の穴の半径
+            Color.TRANSPARENT//中央の塗りつぶし色
         )
-        val sunnyTempFormat = PieFormat(
-            Pair(null, Color.WHITE),//凡例 (形状＋文字色)
-            "false",
-            "日なた\n${"%.1f".format(sunnyTemp)}°C",
-            Pair(16f, Color.WHITE),
-            75f,
-            Pair(null, Color.TRANSPARENT),
-            listOf(Color.RED, Color.GRAY),
-            "false"
+        val sunnyChartFormat = PieChartFormat(
+            null,//凡例形状
+            Color.WHITE,//凡例 (形状＋文字色)
+            null,//グラフ説明
+            null,//背景色
+            false,//タッチ操作の有効
+            "日なた\n${"%.1f".format(sunnyTemp)}°C",//中央に表示するテキスト
+            16f,//中央に表示するテキストサイズ
+            Color.WHITE,//中央に表示するテキストカラー
+            75f,//中央の穴の半径
+            Color.TRANSPARENT//中央の塗りつぶし色
         )
+        //DataSetフォーマット
+        val indoorDSFormat = PieDataSetFormat(
+            false,
+            null,
+            null,
+            null,
+            null,
+            listOf(Color.rgb(243, 201, 14), Color.GRAY)//円の色
+        )
+        val kitchenDSFormat = PieDataSetFormat(
+            false,
+            null,
+            null,
+            null,
+            null,
+            listOf(Color.rgb(128, 255, 0), Color.GRAY)//円の色
+        )
+        val shadeDSFormat = PieDataSetFormat(
+            false,
+            null,
+            null,
+            null,
+            null,
+            listOf(Color.rgb(185, 122, 87), Color.GRAY)//円の色
+        )
+        val sunnyDSFormat = PieDataSetFormat(
+            false,
+            null,
+            null,
+            null,
+            null,
+            listOf(Color.RED, Color.GRAY)//円の色
+        )
+
         //屋内気温を円グラフ用データに整形
         val (dimensionsIndoorTemp, valuesIndoorTemp) = makePieDashboardData(
             indoorTemp.toFloat(),
@@ -138,28 +181,20 @@ class TempFragment(
         val sunnyEntries = makePieChartEntries(dimensionsSunnyTemp, valuesSunnyTemp)
         //②～⑦円グラフ描画
         setupPieChart(
-            indoorEntries,
-            view.piechartTempIndoorTemp,
-            "室内気温",
-            indoorTempFormat
+            indoorEntries, view.piechartTempIndoorTemp, "室内気温",
+            indoorChartFormat, indoorDSFormat
         )
         setupPieChart(
-            kitchenEntries,
-            view.piechartTempKitchen,
-            "室外気温",
-            kitchenTempFormat
+            kitchenEntries, view.piechartTempKitchen, "室外気温",
+            kitchenChartFormat, kitchenDSFormat
         )
         setupPieChart(
-            shadeEntries,
-            view.piechartTempOutdoorShade,
-            "室内湿度",
-            shadeTempFormat
+            shadeEntries, view.piechartTempOutdoorShade, "室内湿度",
+            shadeChartFormat,shadeDSFormat
         )
         setupPieChart(
-            sunnyEntries,
-            view.piechartTempOutdoorSunny,
-            "室外湿度",
-            sunnyTempFormat
+            sunnyEntries, view.piechartTempOutdoorSunny, "室外湿度",
+            sunnyChartFormat, sunnyDSFormat
         )
     }
 
@@ -169,42 +204,86 @@ class TempFragment(
         tempSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
         view: View
     ) {
-        //グラフ全体のフォーマット
-        val tempSeriesFormat = AllLinesFormat(
-            Pair(Color.WHITE, Legend.LegendForm.DEFAULT),//凡例 (文字色＋形状)
-            "false",//グラフ説明
-            Color.BLACK,//塗りつぶし色（背景）
-            Pair(Color.WHITE, null),//X軸の設定（文字色＋ラベル表示間隔）
-            SimpleDateFormat("M/d H:mm"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
-            Color.WHITE,//左Y軸の設定（文字色）
-            Pair(null, null),//左Y軸の表示範囲(最小値＋最大値)
+        //Chartフォーマット
+        val tempLineChartFormat = LineChartFormat(
+            null,//凡例形状
+            null,//凡例文字色
+            null,//グラフ説明
+            Color.BLACK,//背景塗りつぶし色
             true,//タッチ有効
-            Pair("xy", false),//ズーム設定(有無＋ピンチ動作をXY方向に限定するか)
-            Pair("xy", SimpleDateFormat("M/d H:mm")),//ツールチップ設定(表示軸方向＋日付軸フォーマット)
-            Pair("","°C"),//ツールチップの表示単位(X軸＋Y軸)
-            true//時系列グラフのX軸を正確にプロットするか
+            true,//X軸有効
+            Color.WHITE,//X軸文字色
+            null,//X軸文字サイズ
+            SimpleDateFormat("M/d H:mm"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
+            true,//左Y軸有効
+            Color.WHITE,//左Y軸文字色
+            null,//左Y軸文字サイズ
+            null,//左Y軸の表示範囲下限
+            null,//左Y軸の表示範囲上限
+            false,//右Y軸有効
+            null,//右Y軸文字色
+            null,//右Y軸文字サイズ
+            "xy",//ズームの方向(x, y, xy, null=ズーム無効)
+            false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
+            "xy",//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
+            SimpleDateFormat("M/d H:mm"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
+            "",//ツールチップのX軸内容表示に付加する単位
+            "°C",//ツールチップのY軸内容表示に付加する単位
+            false//時系列グラフのX軸を正確にプロットするか
         )
-        //線ごとのフォーマット
-        val tempLineFormat: Map<String, OneLineFormat> = mapOf(
-            "indoor" to OneLineFormat(
+        //DataSetフォーマット(カテゴリ名のMapで作成)
+        val tempLineDataSetFormat: Map<String, LineDataSetFormat> = mapOf(
+            "indoor" to LineDataSetFormat(
+                false,
+                null,
+                null,
+                null,
+                null,
                 Color.rgb(243, 201, 14),
-                Pair(2f, null),
-                Triple(false, null, null)
+                2f,
+                null,
+                false,
+                null,
+                null
             ),
-            "kitchen" to OneLineFormat(
+            "kitchen" to LineDataSetFormat(
+                false,
+                null,
+                null,
+                null,
+                null,
                 Color.rgb(128, 255, 0),
-                Pair(2f, null),
-                Triple(false, null, null)
+                2f,
+                null,
+                false,
+                null,
+                null
             ),
-            "outdoor_shade" to OneLineFormat(
+            "outdoor_shade" to LineDataSetFormat(
+                false,
+                null,
+                null,
+                null,
+                null,
                 Color.rgb(185, 122, 87),
-                Pair(2f, null),
-                Triple(false, null, null)
+                2f,
+                null,
+                false,
+                null,
+                null
             ),
-            "outdoor_sunny" to OneLineFormat(
+            "outdoor_sunny" to LineDataSetFormat(
+                false,
+                null,
+                null,
+                null,
+                null,
                 Color.RED,
-                Pair(2f, null),
-                Triple(false, null, null)
+                2f,
+                null,
+                false,
+                null,
+                null
             )
         )
         //①場所ごとに必要期間のデータ抜き出してEntryのリストに入力
@@ -216,11 +295,11 @@ class TempFragment(
             //Entryにデータ入力
             val x = tempSeriesData[pl]?.map { it.first }!!//X軸（日時データ)
             val y = tempSeriesData[pl]?.map { it.second.toFloat() }!!//Y軸(温度データ)
-            allLinesEntries[pl] = makeDateLineChartData(x, y, tempSeriesFormat.timeAccuracy)//日時と温度をEntryのリストに変換
+            allLinesEntries[pl] = makeDateLineChartData(x, y, tempLineChartFormat.timeAccuracy)//日時と温度をEntryのリストに変換
         }
 
         //②～⑦グラフの作成
-        setupLineChart(allLinesEntries, view.lineChartTempTimeSeries, tempSeriesFormat, tempLineFormat, context)
+        setupLineChart(allLinesEntries, view.lineChartTempTimeSeries, tempLineChartFormat, tempLineDataSetFormat, context)
     }
 
     //温度推移データの描画
@@ -232,24 +311,45 @@ class TempFragment(
         //要素数が0なら終了
         if(tempSeriesData["max"]?.size == 0) return
 
-        //グラフ全体のフォーマット
-        val candleFormat = CandleFormat(
-            Pair(null, Legend.LegendForm.DEFAULT),//凡例 (文字色＋形状)
-            "false",//グラフ説明
-            Color.BLACK,//塗りつぶし色（背景）
-            Pair(Color.WHITE, null),//X軸の設定（文字色＋ラベル表示間隔）
-            SimpleDateFormat("M/d"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
-            Color.WHITE,//左Y軸の設定（文字色）
-            Pair(null, null),//左Y軸の表示範囲(最小値＋最大値)
+        //Chartフォーマット
+        val candleChartFormat = CandleChartFormat(
+            null,//凡例形状
+            null,//凡例文字色
+            null,//グラフ説明
+            Color.BLACK,//背景塗りつぶし色
             true,//タッチ有効
-            Pair("xy", false),//ズーム設定(有無＋ピンチ動作をXY方向に限定するか)
-            Pair(null, SimpleDateFormat("M/d")),//ツールチップ設定(表示軸方向＋日付軸フォーマット)
-            Pair("",""),//ツールチップの表示単位(X軸＋Y軸)
-            Pair(Color.rgb(220, 120, 80), 2.5f),//細線部分のフォーマット(色＋太さ)
-            Pair(Color.rgb(255, 100, 50), Paint.Style.FILL),//Open>Closeのときの太線部分フォーマット(色＋塗りつぶし形式)
-            Pair(null, null),//Open<Closeのときの太線部分フォーマット(色＋塗りつぶし形式)
-            Pair(Color.rgb(220, 120, 80), 7f),//値表示のフォーマット(文字色＋文字サイズ)
-            "%.0f"//値表示の文字書式
+            true,//X軸有効
+            Color.WHITE,//X軸文字色
+            null,//X軸文字サイズ
+            SimpleDateFormat("M/d"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
+            true,//左Y軸有効
+            Color.WHITE,//左Y軸文字色
+            null,//左Y軸文字サイズ
+            null,//左Y軸の表示範囲下限
+            null,//左Y軸の表示範囲上限
+            false,//右Y軸有効
+            null,//右Y軸文字色
+            null,//右Y軸文字サイズ
+            "xy",//ズームの方向(x, y, xy, null=ズーム無効)
+            false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
+            null,//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
+            SimpleDateFormat("M/d"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
+            "",//ツールチップのX軸内容表示に付加する単位
+            ""//ツールチップのY軸内容表示に付加する単位
+        )
+        //DataSetフォーマット
+        val candleDSFormat = CandleDataSetFormat(
+            true,//値の表示有無
+            Color.rgb(220, 120, 80),//値表示の文字色
+            7f,//値表示の文字サイズ
+            "%.0f",//値表示の文字書式
+            YAxis.AxisDependency.LEFT,//使用する軸
+            Color.rgb(220, 120, 80),//細線部分の色
+            2.5f,//細線部分の太さ
+            Color.rgb(255, 100, 50),//Open>Close時の太線部分の色
+            Paint.Style.FILL,//Open>Close時の太線部分の塗りつぶし形式
+            null,//Open<Close時の太線部分の色
+            null//Open<Close時の太線部分の塗りつぶし形式
         )
 
         //①必要データをEntryのリストに入力
@@ -261,6 +361,12 @@ class TempFragment(
         val candleEntries = makeDateCandleChartData(x, yHigh, yLow, yMidHigh, yMidLow)
 
         //②～⑦グラフの作成
-        setupCandleStickChart(candleEntries, view.candleStickChartTempStats, candleFormat, context)
+        setupCandleStickChart(
+            candleEntries,
+            view.candleStickChartTempStats,
+            candleChartFormat,
+            candleDSFormat,
+            context
+        )
     }
 }
