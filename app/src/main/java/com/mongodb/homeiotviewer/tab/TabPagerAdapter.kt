@@ -32,7 +32,7 @@ class TabPagerAdapter(
     override fun getPageTitle(position: Int): CharSequence? {
         when(position){
             0 -> { return "サマリー" }
-            1 -> { return "温度" }
+            1 -> { return "気温" }
             else ->  { return "湿度" }
         }
     }
