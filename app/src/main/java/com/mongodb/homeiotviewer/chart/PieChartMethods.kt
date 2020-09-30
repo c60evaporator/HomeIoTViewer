@@ -1,11 +1,25 @@
 package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
+import android.graphics.Color
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlin.math.max
+
+/**
+ * Chartの初期化
+ * @param[barChart]:初期化対象のChart
+ */
+fun initializePieChart(pieChart: PieChart){
+    pieChart.apply {
+        clear()
+        background = null//背景色をリセット
+        legend.textColor = Color.BLACK
+        description.textColor = Color.BLACK
+    }
+}
 
 /**
  * ダッシュボード風円グラフ用データ作成
@@ -21,8 +35,8 @@ fun makePieDashboardData(displayValue: Float, tempLowerThresh: Float, tempUpperT
 
 /**
  * 円グラフ用Entryのリスト作成
- * @param[dimensions]:分割円の名称(String型)
- * @param[values]:分割円の大きさ(Float型)
+ * @param[dimensions]:分割円の名称(List<String>型)
+ * @param[values]:分割円の大きさ(List<Float>型)
  */
 fun makePieChartEntries(dimensions: List<String>, values: List<Float>): MutableList<PieEntry> {
     //出力用のMutableList<Entry>
@@ -53,6 +67,11 @@ fun setupPieChart(pieEntries: MutableList<PieEntry>,
                   pieChartFormat: PieChartFormat,
                   pieDataSetFormat: PieDataSetFormat
 ) {
+    ///過去のフォーマットをリセット
+    initializePieChart(pieChart)
+    //背景輝度が0.5以下なら文字色を白に
+    val luminance = pieChartFormat.invertTextColor()
+    pieDataSetFormat.invertTextColor(luminance)
     //②PieDataSetにデータ格納
     val pieDataSet = PieDataSet(pieEntries, label)
     //③PieDataSetにフォーマット指定
@@ -78,18 +97,46 @@ fun formatPieChart(pieChart: PieChart, pieChartFormat: PieChartFormat){
         //凡例形状
         pieChart.legend.form = pieChartFormat.legendFormat
         //凡例文字色
-        if(pieChartFormat.legentTextColor != null) pieChart.legend.textColor = pieChartFormat.legentTextColor!!
+        if(pieChartFormat.legentTextColor != null) {
+            pieChart.legend.textColor = pieChartFormat.legentTextColor!!
+        }
+        //凡例文字サイズ
+        if(pieChartFormat.legendTextSize != null) {
+            pieChart.legend.textSize = pieChartFormat.legendTextSize!!
+        }
     }
     else pieChart.legend.isEnabled = false //凡例非表示のとき
     //グラフ説明
     if(pieChartFormat.description != null) {
+        pieChart.description.isEnabled = true
         pieChart.description.text = pieChartFormat.description
+        //グラフ説明の文字色
+        if(pieChartFormat.descriptionTextColor != null){
+            pieChart.description.textColor = pieChartFormat.descriptionTextColor!!
+        }
+        //グラフ説明の文字サイズ
+        if(pieChartFormat.descriptionTextSize != null){
+            pieChart.description.textSize = pieChartFormat.descriptionTextSize!!
+        }
+        //グラフ説明の横方向位置微調整
+        if(pieChartFormat.descriptionXOffset != null){
+            pieChart.description.xOffset = pieChartFormat.descriptionXOffset!!
+        }
+        //グラフ説明の縦方向位置微調整
+        if(pieChartFormat.descriptionYOffset != null){
+            pieChart.description.yOffset = pieChartFormat.descriptionYOffset!!
+        }
     }
     else pieChart.description.isEnabled = false//グラフ説明非表示のとき
     //全体の背景色
     if(pieChartFormat.bgColor != null) pieChart.setBackgroundColor(pieChartFormat.bgColor!!)
     //タッチ動作
     pieChart.setTouchEnabled(pieChartFormat.touch)
+
+    //ラベルの文字サイズ
+    if(pieChartFormat.labelTextSize != null) pieChart.setEntryLabelTextSize(pieChartFormat.labelTextSize!!)
+    //ラベルの文字色
+    if(pieChartFormat.labelColor != null) pieChart.setEntryLabelColor(pieChartFormat.labelColor!!)
 
     //中央に表示する値
     if(pieChartFormat.centerText != null){
@@ -100,10 +147,14 @@ fun formatPieChart(pieChart: PieChart, pieChartFormat: PieChartFormat){
         //値のテキストカラー
         if(pieChartFormat.centerTextColor != null) pieChart.setCenterTextColor(pieChartFormat.centerTextColor!!)
     }
-    //中央の塗りつぶし色
-    if(pieChartFormat.centorColor != null) pieChart.setHoleColor(pieChartFormat.centorColor!!)
+    //中央の穴の塗りつぶし色
+    if(pieChartFormat.holeColor != null) pieChart.setHoleColor(pieChartFormat.holeColor!!)
     //中央の穴の半径
     if(pieChartFormat.holeRadius != null) pieChart.holeRadius = pieChartFormat.holeRadius!!
+    //中央付近の色が薄くなっている部分の半径
+    if(pieChartFormat.transparentCircleRadius != null){
+        pieChart.transparentCircleRadius = pieChartFormat.transparentCircleRadius!!
+    }
 }
 
 /**
@@ -136,5 +187,6 @@ fun formatPieDataSet(pieDataSet: PieDataSet, pieDataSetFormat: PieDataSetFormat)
         pieDataSet.axisDependency = pieDataSetFormat.axisDependency
     }
     //グラフの色
-    pieDataSet.colors = pieDataSetFormat.colorList
+    val colorNum = pieDataSet.entryCount
+    pieDataSet.colors = pieDataSetFormat.colors.slice(0 until colorNum)
 }

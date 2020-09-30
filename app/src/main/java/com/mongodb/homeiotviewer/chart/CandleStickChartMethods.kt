@@ -1,9 +1,9 @@
 package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
+import android.graphics.Color
 import com.github.mikephil.charting.charts.CandleStickChart
 import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.DefaultAxisValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.mongodb.homeiotviewer.R//プロジェクト構成に合わせ変更
@@ -11,12 +11,29 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * Chartの初期化
+ * @param[barChart]:初期化対象のChart
+ */
+fun initializeCandleChart(candleStickChart: CandleStickChart){
+    candleStickChart.apply {
+        clear()
+        background = null//背景色をリセット
+        xAxis.valueFormatter = null//X軸ラベルをリセット
+        legend.textColor = Color.BLACK
+        description.textColor = Color.BLACK
+        xAxis.textColor = Color.BLACK
+        axisLeft.textColor = Color.BLACK
+        axisRight.textColor = Color.BLACK
+    }
+}
+
+/**
  * ローソク足グラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(Float型)
- * @param[yHigh]:Y軸最大値(Float型)
- * @param[yLow]:Y軸最小値(Float型)
- * @param[yOpen]:開始時Y軸のデータ(Float型、箱ひげとして使用するときは第三四分位点)
- * @param[yClose]:終了時Y軸のデータ(Float型、箱ひげとして使用するときは第一四分位点)
+ * @param[x]:X軸のデータ(List<Float>型)
+ * @param[yHigh]:Y軸最大値(List<Float>型)
+ * @param[yLow]:Y軸最小値(List<Float>型)
+ * @param[yOpen]:開始時Y軸のデータ(List<Float>型、箱ひげとして使用するときは第三四分位点)
+ * @param[yClose]:終了時Y軸のデータ(List<Float>型、箱ひげとして使用するときは第一四分位点)
  */
 fun makeCandleChartData(x: List<Float>, yHigh: List<Float>, yLow: List<Float>, yOpen: List<Float>, yClose: List<Float>): MutableList<CandleEntry>{
     //出力用のMutableList<Entry>, ArrayList<String>
@@ -41,11 +58,11 @@ fun makeCandleChartData(x: List<Float>, yHigh: List<Float>, yLow: List<Float>, y
 
 /**
  * 時系列ローソク足グラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(Date型)
- * @param[yHigh]:Y軸最大値(Float型)
- * @param[yLow]:Y軸最小値(Float型)
- * @param[yOpen]:開始時Y軸のデータ(Float型、箱ひげとして使用するときは第三四分位点)
- * @param[yClose]:終了時Y軸のデータ(Float型、箱ひげとして使用するときは第一四分位点)
+ * @param[x]:X軸のデータ(List<Date>型)
+ * @param[yHigh]:Y軸最大値(List<Float>型)
+ * @param[yLow]:Y軸最小値(List<Float>型)
+ * @param[yOpen]:開始時Y軸のデータ(List<Float>型、箱ひげとして使用するときは第三四分位点)
+ * @param[yClose]:終了時Y軸のデータ(List<Float>型、箱ひげとして使用するときは第一四分位点)
  */
 fun makeDateCandleChartData(x: List<Date>, yHigh: List<Float>, yLow: List<Float>, yOpen: List<Float>, yClose: List<Float>): MutableList<CandleEntry>{
     //出力用のMutableList<Entry>, ArrayList<String>
@@ -85,20 +102,22 @@ fun setupCandleStickChart(
     candleDataSetFormat: CandleDataSetFormat,
     context: Context
 ) {
-    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、例外を投げる
-    if((candleChartFormat.xAxisDateFormat == null && candleChartFormat.toolTipDateFormat != null)
-        || (candleChartFormat.xAxisDateFormat != null && candleChartFormat.toolTipDateFormat == null))
-    {
-        throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
-    }
-    //xがdate型だがxAxisDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
+    //初期化
+    initializeCandleChart(candleStickChart)
+    //背景輝度が0.5以下なら文字色を白に
+    val luminance = candleChartFormat.invertTextColor()
+    candleDataSetFormat.invertTextColor(luminance)
+
+    //xがdate型だがxAxisDateFormatあるいはtoolTipDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
     val dataType = candleEntries.firstOrNull()?.data?.javaClass
-    if(dataType?.name == "java.util.Date" && candleChartFormat.xAxisDateFormat == null){
-        candleChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
-        candleChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+    if(dataType?.name == "java.util.Date") {
+        if(candleChartFormat.xAxisDateFormat == null) {
+            candleChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
+        }
+        if(candleChartFormat.toolTipDateFormat == null) {
+            candleChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+        }
     }
-    //X軸のラベルをリセット(過去のラベルが残る可能性があるため)
-    candleStickChart.xAxis.valueFormatter = DefaultAxisValueFormatter(candleEntries.size)
 
     //②CandleDataSetを作成
     val candleDataSet = CandleDataSet(candleEntries, "SampleChandleData")
@@ -136,11 +155,32 @@ fun formatCandleChart(candleStickChart: CandleStickChart, candleChartFormat: Can
         if(candleChartFormat.legentTextColor != null) {
             candleStickChart.legend.textColor = candleChartFormat.legentTextColor!!
         }
+        //凡例文字サイズ
+        if(candleChartFormat.legendTextSize != null) {
+            candleStickChart.legend.textSize = candleChartFormat.legendTextSize!!
+        }
     }
     else candleStickChart.legend.isEnabled = false //凡例非表示のとき
     //グラフ説明
     if(candleChartFormat.description != null) {
+        candleStickChart.description.isEnabled = true
         candleStickChart.description.text = candleChartFormat.description
+        //グラフ説明の文字色
+        if(candleChartFormat.descriptionTextColor != null){
+            candleStickChart.description.textColor = candleChartFormat.descriptionTextColor!!
+        }
+        //グラフ説明の文字サイズ
+        if(candleChartFormat.descriptionTextSize != null){
+            candleStickChart.description.textSize = candleChartFormat.descriptionTextSize!!
+        }
+        //グラフ説明の横方向位置微調整
+        if(candleChartFormat.descriptionXOffset != null){
+            candleStickChart.description.xOffset = candleChartFormat.descriptionXOffset!!
+        }
+        //グラフ説明の縦方向位置微調整
+        if(candleChartFormat.descriptionYOffset != null){
+            candleStickChart.description.yOffset = candleChartFormat.descriptionYOffset!!
+        }
     }
     else candleStickChart.description.isEnabled = false//グラフ説明非表示のとき
     //全体の背景色
@@ -196,6 +236,14 @@ fun formatCandleChart(candleStickChart: CandleStickChart, candleChartFormat: Can
         //文字サイズ
         if(candleChartFormat.yAxisRightTextSize != null) {
             candleStickChart.axisRight.textSize = candleChartFormat.yAxisRightTextSize!!
+        }
+        //表示範囲の下限
+        if(candleChartFormat.yAxisRightMin != null){
+            candleStickChart.axisRight.axisMinimum = candleChartFormat.yAxisRightMin!!
+        }
+        //表示範囲の上限
+        if(candleChartFormat.yAxisRightMax != null){
+            candleStickChart.axisRight.axisMaximum = candleChartFormat.yAxisRightMax!!
         }
     }
     else candleStickChart.axisRight.isEnabled = false//右Y軸ラベル非表示のとき

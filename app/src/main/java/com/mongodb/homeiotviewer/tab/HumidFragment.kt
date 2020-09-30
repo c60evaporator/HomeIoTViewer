@@ -56,85 +56,85 @@ class HumidFragment(
 
         //Chartフォーマット
         val indoorChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "屋内\n${"%.1f".format(indoorHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "屋内\n${"%.1f".format(indoorHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val kitchenChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "ｷｯﾁﾝ\n${"%.1f".format(kitchenHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "ｷｯﾁﾝ\n${"%.1f".format(kitchenHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val shadeChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "日陰\n${"%.1f".format(shadeHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "日陰\n${"%.1f".format(shadeHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val sunnyChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "日なた\n${"%.1f".format(sunnyHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "日なた\n${"%.1f".format(sunnyHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         //DataSetフォーマット
         val indoorDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.rgb(243, 201, 14), Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.rgb(243, 201, 14), Color.GRAY)//円の色
         )
         val kitchenDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.rgb(128, 255, 0), Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.rgb(128, 255, 0), Color.GRAY)//円の色
         )
         val shadeDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.rgb(185, 122, 87), Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.rgb(185, 122, 87), Color.GRAY)//円の色
         )
         val sunnyDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.RED, Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.RED, Color.GRAY)//円の色
         )
 
         //屋内湿度を円グラフ用データに整形
@@ -186,7 +186,7 @@ class HumidFragment(
         )
     }
 
-    //温度推移データの描画
+    //湿度推移データの描画
     private fun refreshHumidTimeSeriesData(
         context: Context,
         humidSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
@@ -194,30 +194,24 @@ class HumidFragment(
     ) {
         //Chartフォーマット
         val humidLineChartFormat = LineChartFormat(
-            null,//凡例形状
-            null,//凡例文字色
-            null,//グラフ説明
-            Color.BLACK,//背景塗りつぶし色
-            true,//タッチ有効
-            true,//X軸有効
-            Color.WHITE,//X軸文字色
-            null,//X軸文字サイズ
-            SimpleDateFormat("M/d H:mm"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
-            true,//左Y軸有効
-            Color.WHITE,//左Y軸文字色
-            null,//左Y軸文字サイズ
-            null,//左Y軸の表示範囲下限
-            null,//左Y軸の表示範囲上限
-            false,//右Y軸有効
-            null,//右Y軸文字色
-            null,//右Y軸文字サイズ
-            "xy",//ズームの方向(x, y, xy, null=ズーム無効)
-            false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
-            "xy",//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
-            SimpleDateFormat("M/d H:mm"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
-            "",//ツールチップのX軸内容表示に付加する単位
-            "°C",//ツールチップのY軸内容表示に付加する単位
-            false//時系列グラフのX軸を正確にプロットするか
+            legendFormat = null,//凡例形状
+            legentTextColor = null,//凡例文字色
+            description = null,//グラフ説明
+            bgColor = Color.BLACK,//背景塗りつぶし色
+            touch = true,//タッチ有効
+            xAxisEnabled = true,//X軸有効
+            xAxisTextColor = Color.WHITE,//X軸文字色
+            xAxisDateFormat = SimpleDateFormat("M/d H:mm"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
+            yAxisLeftEnabled = true,//左Y軸有効
+            yAxisLeftTextColor = Color.WHITE,//左Y軸文字色
+            yAxisRightEnabled = false,//右Y軸有効
+            zoomDirection = "xy",//ズームの方向(x, y, xy, null=ズーム無効)
+            zoomPinch = false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
+            toolTipDirection = "xy",//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
+            toolTipDateFormat = SimpleDateFormat("M/d H:mm"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
+            toolTipUnitX = "",//ツールチップのX軸内容表示に付加する単位
+            toolTipUnitY = "%",//ツールチップのY軸内容表示に付加する単位
+            timeAccuracy = false//時系列グラフのX軸を正確にプロットするか
         )
         //DataSetフォーマット(カテゴリ名のMapで作成)
         val humidLineDataSetFormat: Map<String, LineDataSetFormat> = mapOf(
@@ -301,29 +295,23 @@ class HumidFragment(
 
         //Chartフォーマット
         val candleChartFormat = CandleChartFormat(
-            null,//凡例形状
-            null,//凡例文字色
-            null,//グラフ説明
-            Color.BLACK,//背景塗りつぶし色
-            true,//タッチ有効
-            true,//X軸有効
-            Color.WHITE,//X軸文字色
-            null,//X軸文字サイズ
-            SimpleDateFormat("M/d"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
-            true,//左Y軸有効
-            Color.WHITE,//左Y軸文字色
-            null,//左Y軸文字サイズ
-            null,//左Y軸の表示範囲下限
-            null,//左Y軸の表示範囲上限
-            false,//右Y軸有効
-            null,//右Y軸文字色
-            null,//右Y軸文字サイズ
-            "xy",//ズームの方向(x, y, xy, null=ズーム無効)
-            false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
-            null,//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
-            SimpleDateFormat("M/d"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
-            "",//ツールチップのX軸内容表示に付加する単位
-            ""//ツールチップのY軸内容表示に付加する単位
+            legendFormat = null,//凡例形状
+            legentTextColor = null,//凡例文字色
+            description = null,//グラフ説明
+            bgColor = Color.BLACK,//背景塗りつぶし色
+            touch = true,//タッチ有効
+            xAxisEnabled = true,//X軸有効
+            xAxisTextColor = Color.WHITE,//X軸文字色
+            xAxisDateFormat = SimpleDateFormat("M/d"),//X軸の日付軸フォーマット(日付軸でないときnull指定)
+            yAxisLeftEnabled = true,//左Y軸有効
+            yAxisLeftTextColor = Color.WHITE,//左Y軸文字色
+            yAxisRightEnabled = false,//右Y軸有効
+            zoomDirection = "xy",//ズームの方向(x, y, xy, null=ズーム無効)
+            zoomPinch = false,//ズームのピンチ動作をXY同時にするか(trueなら同時、falseなら1軸に限定)
+            toolTipDirection = null,//ツールチップに表示する軸内容(x, y, xy, null=表示なし)
+            toolTipDateFormat = SimpleDateFormat("M/d"),//ツールチップX軸表示の日付フォーマット(日付軸以外ならnull)
+            toolTipUnitX = "",//ツールチップのX軸内容表示に付加する単位
+            toolTipUnitY = ""//ツールチップのY軸内容表示に付加する単位
         )
         //DataSetフォーマット
         val candleDSFormat = CandleDataSetFormat(

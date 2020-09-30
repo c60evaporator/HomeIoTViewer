@@ -68,85 +68,85 @@ class SummaryFragment(val newestSensorData: MutableList<TempHumidData>,
         val (dimensionsOutdoorHumid, valuesOutdoorHumid) = makePieDashboardData(outdoorHumid.toFloat(), 0f, 100f)
         //Chartフォーマット
         val indoorTempChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "屋内\n${"%.1f".format(indoorTemp)}°C",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "屋内\n${"%.1f".format(indoorTemp)}°C",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val outdoorTempChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "屋外\n${"%.1f".format(outdoorTemp)}°C",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "屋外\n${"%.1f".format(outdoorTemp)}°C",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val indoorHumidChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "屋内\n${"%.1f".format(indoorHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "屋内\n${"%.1f".format(indoorHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         val outdoorHumidChartFormat = PieChartFormat(
-            null,//凡例形状
-            Color.WHITE,//凡例 (形状＋文字色)
-            null,//グラフ説明
-            null,//背景色
-            false,//タッチ操作の有効
-            "屋外\n${"%.1f".format(outdoorHumid)}%",//中央に表示するテキスト
-            16f,//中央に表示するテキストサイズ
-            Color.WHITE,//中央に表示するテキストカラー
-            75f,//中央の穴の半径
-            Color.TRANSPARENT//中央の塗りつぶし色
+            legendFormat = null,//凡例形状
+            legentTextColor =  Color.WHITE,//凡例文字色
+            description =  null,//グラフ説明
+            bgColor = null,//背景色
+            touch = false,//タッチ操作の有効
+            centerText = "屋外\n${"%.1f".format(outdoorHumid)}%",//中央に表示するテキスト
+            centerTextSize = 16f,//中央に表示するテキストサイズ
+            centerTextColor = Color.WHITE,//中央に表示するテキストカラー
+            holeRadius = 75f,//中央の穴の半径
+            holeColor = Color.TRANSPARENT//中央の塗りつぶし色
         )
         //DataSetフォーマット
         val indoorTempDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.rgb(243, 201, 14), Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.rgb(243, 201, 14), Color.GRAY)//円の色
         )
         val outdoorTempDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.RED, Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.RED, Color.GRAY)//円の色
         )
         val indoorHumidDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.CYAN, Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.CYAN, Color.GRAY)//円の色
         )
         val outdoorHumidDSFormat = PieDataSetFormat(
-            false,
-            null,
-            null,
-            null,
-            null,
-            listOf(Color.BLUE, Color.GRAY)//円の色
+            drawValue = false,
+            valueTextColor = null,
+            valueTextSize = null,
+            valueTextFormatter = null,
+            axisDependency = null,
+            colors = listOf(Color.BLUE, Color.GRAY)//円の色
         )
 
         //①場所ごとにEntryのリストを作成

@@ -1,11 +1,11 @@
 package com.mongodb.homeiotviewer.chart//プロジェクト構成に合わせ変更
 
 import android.content.Context
+import android.graphics.Color
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.DefaultAxisValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
@@ -14,9 +14,27 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * Chartの初期化
+ * @param[lineChart]:初期化対象のChart
+ */
+fun initializeLineChart(lineChart: LineChart){
+    lineChart.apply {
+        clear()
+        background = null//背景色をリセット
+        marker = null//マーカーをリセット
+        xAxis.valueFormatter = null//X軸ラベルをリセット
+        legend.textColor = Color.BLACK
+        description.textColor = Color.BLACK
+        xAxis.textColor = Color.BLACK
+        axisLeft.textColor = Color.BLACK
+        axisRight.textColor = Color.BLACK
+    }
+}
+
+/**
  * 折れ線グラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(Float型)
- * @param[y]:Y軸のデータ(Float型)
+ * @param[x]:X軸のデータ(List<Float>型)
+ * @param[y]:Y軸のデータ(List<Float>型)
  */
 fun makeLineChartData(x: List<Float>, y: List<Float>): MutableList<Entry> {
     //出力用のMutableList<Entry>
@@ -37,8 +55,8 @@ fun makeLineChartData(x: List<Float>, y: List<Float>): MutableList<Entry> {
 
 /**
  * 時系列折れ線グラフ用Entryのリスト作成
- * @param[x]:X軸のデータ(Date型)
- * @param[y]:Y軸のデータ(Float型)
+ * @param[x]:X軸のデータ(List<Date>型)
+ * @param[y]:Y軸のデータ(List<Float>型)
  */
 fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean): MutableList<Entry>{
     //出力用のMutableList<Entry>
@@ -79,38 +97,50 @@ fun makeDateLineChartData(x: List<Date>, y: List<Float>, timeAccuracy: Boolean):
  * 折れ線グラフ描画
  * @param[allLinesEntries]:折れ線グラフのデータ本体 ({折れ線1名称:ListOf(折れ線1のEntry), 折れ線2名称:ListOf(折れ線2のEntry), ‥}の構造)
  * @param[lineChart]:描画対象のLineChartビュー
- * @param[allLinesFormat]:グラフ全体のフォーマットを指定(独自クラスAllLinesFormatで記載)
- * @param[onelineFormat]:折れ線ごとのフォーマットを指定(placeをキーとして、独自クラスOneLineFormatのmapで記載)
+ * @param[lineChartFormat]:Chartのフォーマットを指定
+ * @param[lineDataSetFormats]:折れ線ごとのDataSetフォーマットを指定
  * @param[context]:呼び出し元のActivityあるいはFragmentのContext
  */
 fun setupLineChart(
     allLinesEntries: MutableMap<String, MutableList<Entry>>,
     lineChart: LineChart,
     lineChartFormat: LineChartFormat,
-    dataSetFormats: Map<String, LineDataSetFormat>,
+    lineDataSetFormats: Map<String, LineDataSetFormat>,
     context: Context
 ) {
-    //xAxisDateFormatとtoolTipFormat.secondの日付指定有無が一致していないとき、例外を投げる
-    if((lineChartFormat.xAxisDateFormat == null && lineChartFormat.toolTipDateFormat != null)
-        || (lineChartFormat.xAxisDateFormat != null && lineChartFormat.toolTipDateFormat == null))
-    {
-        throw IllegalArgumentException("xAxisDateFormatとtoolTipFormat.secondのどちらかのみにnullを指定することはできません")
-    }
-    //xがdate型だがxAxisDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
+    //初期化
+    initializeLineChart(lineChart)
+    //背景輝度が0.5以下なら文字色を白に
+    val luminance = lineChartFormat.invertTextColor()
+    lineDataSetFormats.values.map { it.invertTextColor(luminance) }
+
+    //xがdate型だがxAxisDateFormatあるいはtoolTipDateFormatがnullのとき、xAxisDateFormatおよびtoolTipDateFormatに仮フォーマット入力
     val dataType = allLinesEntries[allLinesEntries.keys.first()]?.firstOrNull()?.data?.javaClass
-    if(dataType?.name == "java.util.Date" && lineChartFormat.xAxisDateFormat == null){
-        lineChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
-        lineChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+    if(dataType?.name == "java.util.Date") {
+        if(lineChartFormat.xAxisDateFormat == null) {
+            lineChartFormat.xAxisDateFormat = SimpleDateFormat("M/d H:mm")
+        }
+        if(lineChartFormat.toolTipDateFormat == null) {
+            lineChartFormat.toolTipDateFormat = SimpleDateFormat("M/d H:mm")
+        }
     }
-    //X軸のラベルをリセット(過去のラベルが残る可能性があるため)
-    lineChart.xAxis.valueFormatter = DefaultAxisValueFormatter(allLinesEntries[allLinesEntries.keys.first()]!!.size)
+
+    //複数線グラフかつ色が同じ線が存在するとき、UNIVERSAL_COLORS_ACCENTから色を自動抽出
+    if(allLinesEntries.size >= 2){
+        var colorCnt = lineDataSetFormats.map { it.value.lineColor }.distinct().size
+        if(colorCnt < lineDataSetFormats.size){
+            for((i, k) in lineDataSetFormats.keys.withIndex()) {
+                lineDataSetFormats[k]?.lineColor = UNIVERSAL_COLORS_ACCENT[i]
+            }
+        }
+    }
 
     //②LineDataSetのリストを作成
     val lineDataSets = mutableListOf<ILineDataSet>()
     for((k, v) in allLinesEntries){
         var lineDataSet: ILineDataSet = LineDataSet(v, k).apply{
             //③DataSetフォーマット適用
-            formatLineDataSet(this, dataSetFormats[k]!!)
+            formatLineDataSet(this, lineDataSetFormats[k]!!)
         }
         lineDataSets.add(lineDataSet)
     }
@@ -165,11 +195,32 @@ fun formatLineChart(lineChart: LineChart, lineChartFormat: LineChartFormat, cont
         if(lineChartFormat.legentTextColor != null) {
             lineChart.legend.textColor = lineChartFormat.legentTextColor!!
         }
+        //凡例文字サイズ
+        if(lineChartFormat.legendTextSize != null) {
+            lineChart.legend.textSize = lineChartFormat.legendTextSize!!
+        }
     }
     else lineChart.legend.isEnabled = false //凡例非表示のとき
     //グラフ説明
     if(lineChartFormat.description != null) {
+        lineChart.description.isEnabled = true
         lineChart.description.text = lineChartFormat.description
+        //グラフ説明の文字色
+        if(lineChartFormat.descriptionTextColor != null){
+            lineChart.description.textColor = lineChartFormat.descriptionTextColor!!
+        }
+        //グラフ説明の文字サイズ
+        if(lineChartFormat.descriptionTextSize != null){
+            lineChart.description.textSize = lineChartFormat.descriptionTextSize!!
+        }
+        //グラフ説明の横方向位置微調整
+        if(lineChartFormat.descriptionXOffset != null){
+            lineChart.description.xOffset = lineChartFormat.descriptionXOffset!!
+        }
+        //グラフ説明の縦方向位置微調整
+        if(lineChartFormat.descriptionYOffset != null){
+            lineChart.description.yOffset = lineChartFormat.descriptionYOffset!!
+        }
     }
     else lineChart.description.isEnabled = false//グラフ説明非表示のとき
     //全体の背景色
@@ -225,6 +276,14 @@ fun formatLineChart(lineChart: LineChart, lineChartFormat: LineChartFormat, cont
         //文字サイズ
         if(lineChartFormat.yAxisRightTextSize != null) {
             lineChart.axisRight.textSize = lineChartFormat.yAxisRightTextSize!!
+        }
+        //表示範囲の下限
+        if(lineChartFormat.yAxisRightMin != null){
+            lineChart.axisRight.axisMinimum = lineChartFormat.yAxisRightMin!!
+        }
+        //表示範囲の上限
+        if(lineChartFormat.yAxisRightMax != null){
+            lineChart.axisRight.axisMaximum = lineChartFormat.yAxisRightMax!!
         }
     }
     else lineChart.axisRight.isEnabled = false//右Y軸ラベル非表示のとき
@@ -293,17 +352,11 @@ fun formatLineDataSet(lineDataSet: LineDataSet, lineDataSetFormat: LineDataSetFo
     }
 
     //線の色
-    lineDataSet.color = lineDataSetFormat.lineColor
+    if(lineDataSetFormat.lineColor != null) lineDataSet.color = lineDataSetFormat.lineColor!!
     //線の幅
-    if(lineDataSetFormat.lineWidth != null)
-    {
-        lineDataSet.lineWidth = lineDataSetFormat.lineWidth!!
-    }
+    if(lineDataSetFormat.lineWidth != null) lineDataSet.lineWidth = lineDataSetFormat.lineWidth!!
     //フィッティング法
-    if(lineDataSetFormat.fittingMode != null)
-    {
-        lineDataSet.mode = lineDataSetFormat.fittingMode!!
-    }
+    if(lineDataSetFormat.fittingMode != null) lineDataSet.mode = lineDataSetFormat.fittingMode!!
 
     //データ点のフォーマット
     //データ点表示するとき
@@ -313,8 +366,17 @@ fun formatLineDataSet(lineDataSet: LineDataSet, lineDataSetFormat: LineDataSetFo
         if(lineDataSetFormat.circleColor != null){
             lineDataSet.setCircleColor(lineDataSetFormat.circleColor!!)
         }
+        //データ点の半径
         if(lineDataSetFormat.circleRadius!= null){
             lineDataSet.circleRadius = lineDataSetFormat.circleRadius!!
+        }
+        //データ点の中央の塗りつぶし色
+        if(lineDataSetFormat.circleHoleColor != null){
+            lineDataSet.circleHoleColor = lineDataSetFormat.circleHoleColor!!
+        }
+        //データ点の中央の穴の半径
+        if(lineDataSetFormat.circleHoleRadius!= null){
+            lineDataSet.circleHoleRadius = lineDataSetFormat.circleHoleRadius!!
         }
     }
     //データ点表示しないとき
