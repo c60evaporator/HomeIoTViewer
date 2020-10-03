@@ -4,15 +4,12 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.highlight.Highlight
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.mongodb.homeiotviewer.R
 import com.mongodb.homeiotviewer.TempHumidData
 import com.mongodb.homeiotviewer.chart.*
@@ -20,12 +17,11 @@ import kotlinx.android.synthetic.main.fragment_tab_temp.view.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-//リスナの継承削除する
 class TempFragment(
     val newestSensorData: MutableList<TempHumidData>,
     val placeTempData: Map<String, MutableList<Pair<Date, Double>>>,
     val tempStatsData: Map<String, List<Pair<Date, Double>>>)
-    : Fragment(), OnChartValueSelectedListener {
+    : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         //レイアウトからViewを生成
@@ -44,14 +40,6 @@ class TempFragment(
         refreshTempStatsData(this.requireContext(), tempStatsData, tempView)
 
         return tempView
-    }
-    //リスナ用
-    override fun onValueSelected(e: Entry, h: Highlight) {
-        Log.i("Entry selected", e.toString())
-    }
-    //リスナ用
-    override fun onNothingSelected() {
-        Log.i("Nothing selected", "Nothing selected.")
     }
 
     //現在の気温データの描画

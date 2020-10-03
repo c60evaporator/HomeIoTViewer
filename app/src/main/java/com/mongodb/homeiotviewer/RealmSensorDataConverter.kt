@@ -2,7 +2,6 @@ package com.mongodb.homeiotviewer
 
 import com.mongodb.homeiotviewer.model.Sensor
 import com.mongodb.homeiotviewer.model.SensorList
-import io.realm.RealmCollection
 import io.realm.RealmQuery
 import java.text.SimpleDateFormat
 import java.util.*
