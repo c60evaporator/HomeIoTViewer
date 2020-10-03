@@ -186,7 +186,7 @@ class HumidFragment(
         )
     }
 
-    //湿度推移データの描画
+    //湿度推移折れ線グラフの描画
     private fun refreshHumidTimeSeriesData(
         context: Context,
         humidSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
@@ -284,7 +284,7 @@ class HumidFragment(
         setupLineChart(allLinesEntries, view.lineChartHumidTimeSeries, humidLineChartFormat, humidLineDataSetFormat, context)
     }
 
-    //温度推移データの描画
+    //屋外日陰の最高最低湿度推移ローソク足グラフの描画
     private fun refreshHumidStatsData(
         context: Context,
         humidSeriesData: Map<String, List<Pair<Date, Double>>>,

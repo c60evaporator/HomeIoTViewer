@@ -186,7 +186,7 @@ class TempFragment(
         )
     }
 
-    //温度推移データの描画
+    //温度推移折れ線グラフの描画
     private fun refreshTempTimeSeriesData(
         context: Context,
         tempSeriesData: Map<String, MutableList<Pair<Date, Double>>>,
@@ -284,7 +284,7 @@ class TempFragment(
         setupLineChart(allLinesEntries, view.lineChartTempTimeSeries, tempLineChartFormat, tempLineDataSetFormat, context)
     }
 
-    //温度推移データの描画
+    //屋外日陰の最高最低気温推移ローソク足グラフの描画
     private fun refreshTempStatsData(
         context: Context,
         tempSeriesData: Map<String, List<Pair<Date, Double>>>,
